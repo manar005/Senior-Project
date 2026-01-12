@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.title }} - Thaghrah{% endblock %}
+
+{% block extra_head %}
+{% if challenge.id == 1 %}
+<!-- THAGHRAH_WELCOME_2024 -->
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="challenge-header-page">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        <h2>{{ challenge.title }}</h2>
+    </div>
+    
+    {% if is_completed %}
+    <div class="alert alert-success">
+        ✓ Congratulations! You've completed this challenge!
+    </div>
+    {% endif %}
+    
+    <div class="challenge-content">
+        <div class="challenge-section">
+            <h3>Description</h3>
+            <p>{{ challenge.description }}</p>
+        </div>
+        
+        {% if challenge.challenge_type == 'image' %}
+        <div class="challenge-section">
+            <h3>Challenge Image</h3>
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/' + challenge.challenge_data) }}" alt="Challenge Image" class="challenge-image">
+            </div>
+        </div>
+        {% elif challenge.challenge_data %}
+        <div class="challenge-section">
+            <h3>Challenge Data</h3>
+            <div class="data-container">
+                <code>{{ challenge.challenge_data }}</code>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="challenge-section">
+            <h3>Expected Outcome</h3>
+            <p>{{ challenge.expected_outcome }}</p>
+        </div>
+        
+        <div class="challenge-section">
+            <h3>Hint</h3>
+            <button id="show-hint-btn" class="btn btn-secondary">Show Hint</button>
+            <div id="hint-content" class="hint-content" style="display: none;">
+                <p>{{ challenge.hint }}</p>
+            </div>
+        </div>
+        
+        <div class="challenge-section">
+            <h3>Submit Flag</h3>
+            <form id="flag-form" class="flag-form">
+                <input type="hidden" id="challenge-id" value="{{ challenge.id }}">
+                <div class="form-group">
+                    <input type="text" id="flag-input" placeholder="Enter the flag here..." class="flag-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Flag</button>
+            </form>
+            <div id="flag-result" class="flag-result"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.getElementById('show-hint-btn').addEventListener('click', function() {
+        const hintContent = document.getElementById('hint-content');
+        hintContent.style.display = hintContent.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    document.getElementById('flag-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const challengeId = document.getElementById('challenge-id').value;
+        const flag = document.getElementById('flag-input').value;
+        const resultDiv = document.getElementById('flag-result');
+        
+        try {
+            const response = await fetch('/submit_flag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    challenge_id: parseInt(challengeId),
+                    flag: flag
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                resultDiv.className = 'flag-result success';
+                resultDiv.textContent = data.message;
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            } else {
+                resultDiv.className = 'flag-result error';
+                resultDiv.textContent = data.message;
+            }
+        } catch (error) {
+            resultDiv.className = 'flag-result error';
+            resultDiv.textContent = 'An error occurred. Please try again.';
+        }
+    });
+</script>
+{% endblock %}

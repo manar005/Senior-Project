@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Thaghrah{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h2>Welcome to Thaghrah!</h2>
+        <p>Complete challenges to unlock new ones and track your progress.</p>
+    </div>
+    
+    <div class="progress-summary">
+        <div class="progress-card">
+            <h3>Progress</h3>
+            <p class="progress-text">{{ completed_ids|length }} / {{ challenges|length }} challenges completed</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ (completed_ids|length / challenges|length * 100) if challenges|length > 0 else 0 }}%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="challenges-grid">
+        {% for challenge in challenges %}
+        <div class="challenge-card {% if challenge.id in completed_ids %}completed{% elif challenge.id in unlocked %}unlocked{% else %}locked{% endif %}">
+            <div class="challenge-header">
+                <h3>{{ challenge.title }}</h3>
+                <span class="challenge-badge">
+                    {% if challenge.id in completed_ids %}
+                        ✓ Completed
+                    {% elif challenge.id in unlocked %}
+                        🔓 Unlocked
+                    {% else %}
+                        🔒 Locked
+                    {% endif %}
+                </span>
+            </div>
+            <p class="challenge-description">{{ challenge.description[:100] }}{% if challenge.description|length > 100 %}...{% endif %}</p>
+            <div class="challenge-footer">
+                {% if challenge.id in unlocked %}
+                    <a href="{{ url_for('challenge', challenge_id=challenge.id) }}" class="btn btn-primary">Start Challenge</a>
+                {% else %}
+                    <button class="btn btn-disabled" disabled>Complete previous challenge</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
