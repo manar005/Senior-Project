@@ -11,7 +11,7 @@
 {% block content %}
 <div class="container">
     <div class="challenge-header-page">
-        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        <a href="{% if category_url %}{{ category_url }}{% else %}{{ url_for('home') }}{% endif %}" class="back-link">← Back to Challenges</a>
         <h2>{{ challenge.title }}</h2>
     </div>
     
@@ -103,7 +103,11 @@
                 resultDiv.className = 'flag-result success';
                 resultDiv.textContent = data.message;
                 setTimeout(() => {
-                    window.location.href = '/dashboard';
+                    {% if category_url %}
+                    window.location.href = '{{ category_url }}';
+                    {% else %}
+                    window.location.href = '{{ url_for("home") }}';
+                    {% endif %}
                 }, 2000);
             } else {
                 resultDiv.className = 'flag-result error';

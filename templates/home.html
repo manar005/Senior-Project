@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Thaghrah{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <div class="home-hero">
+        <h1 class="project-name">🛡️ Thaghrah</h1>
+        <p class="project-tagline">Educational Cybersecurity Learning Platform</p>
+        {% if session.name %}
+        <p class="welcome-message">Welcome, {{ session.name }}!</p>
+        {% endif %}
+    </div>
+    
+    <div class="challenge-selection">
+        <h2>Choose Your Learning Path</h2>
+        <p class="selection-subtitle">Select a challenge category to begin your cybersecurity journey</p>
+        
+        <div class="challenge-options">
+            <a href="{{ url_for('general_challenges') }}" class="challenge-option-card">
+                <div class="option-icon">🔐</div>
+                <h3>General Cybersecurity</h3>
+                <p>Learn fundamental cybersecurity concepts including encoding, steganography, web security, and more.</p>
+                <div class="option-stats">
+                    <span>10 Challenges</span>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('network_challenges') }}" class="challenge-option-card">
+                <div class="option-icon">🌐</div>
+                <h3>Network Security</h3>
+                <p>Master network analysis, packet inspection, protocol identification, and network forensics using tools like Wireshark.</p>
+                <div class="option-stats">
+                    <span>10 Challenges</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

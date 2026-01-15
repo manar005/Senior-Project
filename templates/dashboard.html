@@ -5,7 +5,8 @@
 {% block content %}
 <div class="container">
     <div class="dashboard-header">
-        <h2>Welcome to Thaghrah!</h2>
+        <a href="{{ url_for('home') }}" class="back-link" style="display: inline-block; margin-bottom: 1rem;">← Back to Home</a>
+        <h2>{% if category %}{{ category }}{% else %}Welcome to Thaghrah!{% endif %}</h2>
         <p>Complete challenges to unlock new ones and track your progress.</p>
     </div>
     
@@ -21,7 +22,7 @@
     
     <div class="challenges-grid">
         {% for challenge in challenges %}
-        <div class="challenge-card {% if challenge.id in completed_ids %}completed{% elif challenge.id in unlocked %}unlocked{% else %}locked{% endif %}">
+        <div class="challenge-card {% if challenge.id in completed_ids %}completed{% elif challenge.id in unlocked %}unlocked{% else %}locked{% endif %} {% if loop.last %}last-challenge{% endif %}">
             <div class="challenge-header">
                 <h3>{{ challenge.title }}</h3>
                 <span class="challenge-badge">
