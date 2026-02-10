@@ -35,26 +35,12 @@
     {% endif %}
     
     <div class="challenge-selection">
-        <h2>Choose Your Learning Path</h2>
-        <p class="selection-subtitle">Select a challenge category to begin your cybersecurity journey</p>
+        <h2>Network Security Challenges</h2>
+        <p class="selection-subtitle">Master network analysis, packet inspection, protocol identification, and network forensics using tools like Wireshark.</p>
         
-        <div class="challenge-options">
-            <a href="{{ url_for('general_challenges') }}" class="challenge-option-card">
-                <div class="option-icon">🔐</div>
-                <h3>General Cybersecurity</h3>
-                <p>Learn fundamental cybersecurity concepts including encoding, steganography, web security, and more.</p>
-                <div class="option-stats">
-                    <span>10 Challenges</span>
-                </div>
-            </a>
-            
-            <a href="{{ url_for('network_challenges') }}" class="challenge-option-card">
-                <div class="option-icon">🌐</div>
-                <h3>Network Security</h3>
-                <p>Master network analysis, packet inspection, protocol identification, and network forensics using tools like Wireshark.</p>
-                <div class="option-stats">
-                    <span>10 Challenges</span>
-                </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('network_challenges') }}" class="btn btn-primary" style="display: inline-block; padding: 1rem 2rem; font-size: 1.1rem;">
+                View Network Challenges →
             </a>
         </div>
     </div>

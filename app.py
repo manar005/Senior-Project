@@ -4,7 +4,8 @@ import sqlite3
 import os
 from functools import wraps
 import secrets
-from challenges import get_all_challenges, get_general_challenges, get_network_challenges
+from challenges import get_network_challenges
+import db_queries
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -39,84 +40,20 @@ def create_challenge_image():
                 f.write("Placeholder image. Flag: IMAGE_STEGANOGRAPHY_FLAG")
 
 def init_db():
+    """Initialize database from schema.sql file"""
     conn = get_db()
-    cursor = conn.cursor()
     
-    # Users table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    # Read and execute schema.sql file
+    schema_path = os.path.join(os.path.dirname(__file__), 'schema.sql')
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        schema_sql = f.read()
     
-    # Add name column if it doesn't exist (for existing databases)
-    try:
-        cursor.execute('ALTER TABLE users ADD COLUMN name TEXT')
-    except sqlite3.OperationalError:
-        # Column already exists, ignore
-        pass
-    
-    # Challenges table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS challenges (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            description TEXT NOT NULL,
-            hint TEXT NOT NULL,
-            flag TEXT NOT NULL,
-            expected_outcome TEXT NOT NULL,
-            challenge_type TEXT NOT NULL,
-            challenge_data TEXT,
-            order_num INTEGER NOT NULL
-        )
-    ''')
-    
-    # User progress table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS user_progress (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            challenge_id INTEGER NOT NULL,
-            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (challenge_id) REFERENCES challenges(id),
-            UNIQUE(user_id, challenge_id)
-        )
-    ''')
-    
-    # Badges table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS badges (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT NOT NULL,
-            icon TEXT NOT NULL,
-            requirement_type TEXT NOT NULL,
-            requirement_value INTEGER NOT NULL
-        )
-    ''')
-    
-    # User badges table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS user_badges (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            badge_id INTEGER NOT NULL,
-            earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (badge_id) REFERENCES badges(id),
-            UNIQUE(user_id, badge_id)
-        )
-    ''')
+    conn.executescript(schema_sql)
+    conn.commit()
     
     # Insert badges if they don't exist
-    cursor.execute('SELECT COUNT(*) FROM badges')
-    if cursor.fetchone()[0] == 0:
-        badges = [
+    if db_queries.get_badge_count(conn) == 0:
+        badges_data = [
             ('First Steps', 'Complete your first challenge', '🎯', 'challenges_completed', 1),
             ('Getting Started', 'Complete 3 challenges', '🌟', 'challenges_completed', 3),
             ('Halfway Hero', 'Complete 5 challenges', '🏆', 'challenges_completed', 5),
@@ -128,21 +65,20 @@ def init_db():
             ('Quick Learner', 'Complete 3 challenges in one day', '⚡', 'daily_challenges', 3),
             ('Dedicated', 'Complete 5 challenges in one day', '🔥', 'daily_challenges', 5)
         ]
-        cursor.executemany('''
+        conn.executemany('''
             INSERT INTO badges (name, description, icon, requirement_type, requirement_value)
             VALUES (?, ?, ?, ?, ?)
-        ''', badges)
+        ''', badges_data)
+        conn.commit()
     
     # Insert challenges if they don't exist
-    cursor.execute('SELECT COUNT(*) FROM challenges')
-    if cursor.fetchone()[0] == 0:
-        challenges = get_all_challenges()
+    if db_queries.get_challenge_count(conn) == 0:
+        challenges = get_network_challenges()
         
-        for challenge in challenges:
-            cursor.execute('''
-                INSERT INTO challenges (title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
+        # Prepare challenge data for batch insert
+        challenge_data = []
+        for idx, challenge in enumerate(challenges, start=1):
+            challenge_data.append((
                 challenge['title'],
                 challenge['description'],
                 challenge['hint'],
@@ -150,37 +86,28 @@ def init_db():
                 challenge['expected_outcome'],
                 challenge['challenge_type'],
                 challenge['challenge_data'],
-                challenge['order_num']
+                idx
             ))
+        
+        # Use helper function for batch insert
+        db_queries.insert_challenges(conn, challenge_data)
     
-    conn.commit()
     conn.close()
 
 def check_and_award_badges(user_id, challenge_id):
     """Check if user qualifies for any badges and award them"""
     conn = get_db()
-    cursor = conn.cursor()
     
     # Get user's completed challenges
-    completed = cursor.execute(
-        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
-        (user_id,)
-    ).fetchall()
+    completed = db_queries.get_user_progress(conn, user_id)
     completed_ids = [row[0] for row in completed]
     total_completed = len(completed_ids)
     
-    # Get challenge info
-    challenge = cursor.execute('SELECT * FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
-    
     # Get all badges
-    badges = cursor.execute('SELECT * FROM badges').fetchall()
+    badges = db_queries.get_all_badges(conn)
     
     # Get user's existing badges
-    user_badges = cursor.execute(
-        'SELECT badge_id FROM user_badges WHERE user_id = ?',
-        (user_id,)
-    ).fetchall()
-    user_badge_ids = [row[0] for row in user_badges]
+    user_badge_ids = db_queries.get_user_badge_ids(conn, user_id)
     
     new_badges = []
     
@@ -193,39 +120,20 @@ def check_and_award_badges(user_id, challenge_id):
         
         if requirement_type == 'challenges_completed':
             if total_completed >= requirement_value:
-                # Award badge
-                cursor.execute(
-                    'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
-                    (user_id, badge['id'])
-                )
-                new_badges.append(badge)
+                # Award badge (function will check for duplicates)
+                if db_queries.award_badge(conn, user_id, badge['id']):
+                    new_badges.append(badge)
         
         elif requirement_type == 'category_completed':
-            # Check if user completed all challenges in a category
-            if requirement_value == 10:  # General challenges (1-10)
-                general_challenges = cursor.execute(
-                    'SELECT id FROM challenges WHERE order_num >= 1 AND order_num <= 10'
-                ).fetchall()
-                general_ids = [row[0] for row in general_challenges]
-                if all(cid in completed_ids for cid in general_ids):
-                    cursor.execute(
-                        'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
-                        (user_id, badge['id'])
-                    )
-                    new_badges.append(badge)
-            elif requirement_value == 20:  # Network challenges (11-20)
-                network_challenges = cursor.execute(
-                    'SELECT id FROM challenges WHERE order_num >= 11 AND order_num <= 20'
-                ).fetchall()
-                network_ids = [row[0] for row in network_challenges]
-                if all(cid in completed_ids for cid in network_ids):
-                    cursor.execute(
-                        'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
-                        (user_id, badge['id'])
-                    )
-                    new_badges.append(badge)
+            # Check if user completed all network challenges
+            if requirement_value == 20:  # Network challenges
+                challenges = db_queries.get_all_challenges(conn)
+                challenge_ids = [ch['id'] for ch in challenges]
+                if all(cid in completed_ids for cid in challenge_ids):
+                    # Award badge (function will check for duplicates)
+                    if db_queries.award_badge(conn, user_id, badge['id']):
+                        new_badges.append(badge)
     
-    conn.commit()
     conn.close()
     return new_badges
 
@@ -249,18 +157,19 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
         
-        if not name or not email or not password:
-            return render_template('register.html', error='Name, email and password are required')
+        if not name or not email or not password or not confirm_password:
+            return render_template('register.html', error='All fields are required')
+        
+        if password != confirm_password:
+            return render_template('register.html', error='Passwords do not match')
         
         conn = get_db()
-        cursor = conn.cursor()
         
         try:
             password_hash = generate_password_hash(password)
-            cursor.execute('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)', (name, email, password_hash))
-            conn.commit()
-            user_id = cursor.lastrowid
+            user_id = db_queries.create_user(conn, name, email, password_hash)
             conn.close()
             
             session['user_id'] = user_id
@@ -283,8 +192,7 @@ def login():
             return render_template('login.html', error='Email and password are required')
         
         conn = get_db()
-        cursor = conn.cursor()
-        user = cursor.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+        user = db_queries.get_user_by_email(conn, email)
         conn.close()
         
         if user and check_password_hash(user['password_hash'], password):
@@ -307,94 +215,29 @@ def logout():
 @login_required
 def home():
     conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get user's badges
-    user_badges = cursor.execute('''
-        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
-        FROM badges b
-        INNER JOIN user_badges ub ON b.id = ub.badge_id
-        WHERE ub.user_id = ?
-        ORDER BY ub.earned_at DESC
-    ''', (session['user_id'],)).fetchall()
-    
-    # Get total badges count
-    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
-    
+    user_badges = db_queries.get_user_badges(conn, session['user_id'])
+    total_badges = db_queries.get_total_badges_count(conn)
     conn.close()
     
     return render_template('home.html', user_badges=user_badges, total_badges=total_badges)
 
-@app.route('/challenges/general')
-@login_required
-def general_challenges():
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get general challenges (order_num 1-10)
-    challenges = cursor.execute('SELECT * FROM challenges WHERE order_num >= 1 AND order_num <= 10 ORDER BY order_num').fetchall()
-    
-    # Get user's completed challenges
-    completed = cursor.execute(
-        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
-        (session['user_id'],)
-    ).fetchall()
-    completed_ids = [row[0] for row in completed]
-    
-    # Determine which challenges are unlocked (within this category)
-    unlocked = []
-    for i, challenge in enumerate(challenges):
-        if i == 0 or challenges[i-1]['id'] in completed_ids:
-            unlocked.append(challenge['id'])
-    
-    # Get user's badges
-    user_badges = cursor.execute('''
-        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
-        FROM badges b
-        INNER JOIN user_badges ub ON b.id = ub.badge_id
-        WHERE ub.user_id = ?
-        ORDER BY ub.earned_at DESC
-    ''', (session['user_id'],)).fetchall()
-    
-    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
-    
-    conn.close()
-    
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='General Cybersecurity', user_badges=user_badges, total_badges=total_badges)
 
 @app.route('/challenges/network')
 @login_required
 def network_challenges():
     conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get network challenges (order_num 11-20)
-    challenges = cursor.execute('SELECT * FROM challenges WHERE order_num >= 11 AND order_num <= 20 ORDER BY order_num').fetchall()
-    
-    # Get user's completed challenges
-    completed = cursor.execute(
-        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
-        (session['user_id'],)
-    ).fetchall()
+    challenges = db_queries.get_all_challenges(conn)
+    completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
     
-    # Determine which challenges are unlocked (within this category)
+    # Determine which challenges are unlocked
     unlocked = []
     for i, challenge in enumerate(challenges):
         if i == 0 or challenges[i-1]['id'] in completed_ids:
             unlocked.append(challenge['id'])
     
-    # Get user's badges
-    user_badges = cursor.execute('''
-        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
-        FROM badges b
-        INNER JOIN user_badges ub ON b.id = ub.badge_id
-        WHERE ub.user_id = ?
-        ORDER BY ub.earned_at DESC
-    ''', (session['user_id'],)).fetchall()
-    
-    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
-    
+    user_badges = db_queries.get_user_badges(conn, session['user_id'])
+    total_badges = db_queries.get_total_badges_count(conn)
     conn.close()
     
     return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges)
@@ -403,16 +246,8 @@ def network_challenges():
 @login_required
 def dashboard():
     conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get all challenges
-    challenges = cursor.execute('SELECT * FROM challenges ORDER BY order_num').fetchall()
-    
-    # Get user's completed challenges
-    completed = cursor.execute(
-        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
-        (session['user_id'],)
-    ).fetchall()
+    challenges = db_queries.get_all_challenges(conn)
+    completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
     
     # Determine which challenges are unlocked
@@ -431,36 +266,18 @@ def challenge(challenge_id):
     from flask import make_response
     
     conn = get_db()
-    cursor = conn.cursor()
-    
-    challenge = cursor.execute('SELECT * FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
+    challenge = db_queries.get_challenge_by_id(conn, challenge_id)
     
     if not challenge:
         conn.close()
         return redirect(url_for('home'))
     
-    # Determine which category this challenge belongs to
-    if challenge['order_num'] >= 1 and challenge['order_num'] <= 10:
-        category = 'general'
-        category_url = url_for('general_challenges')
-    elif challenge['order_num'] >= 11 and challenge['order_num'] <= 20:
-        category = 'network'
-        category_url = url_for('network_challenges')
-    else:
-        category = 'general'
-        category_url = url_for('general_challenges')
+    # All challenges are network challenges now
+    category_url = url_for('network_challenges')
     
-    # Get challenges from the same category for unlock checking
-    if category == 'general':
-        challenges = cursor.execute('SELECT * FROM challenges WHERE order_num >= 1 AND order_num <= 10 ORDER BY order_num').fetchall()
-    else:
-        challenges = cursor.execute('SELECT * FROM challenges WHERE order_num >= 11 AND order_num <= 20 ORDER BY order_num').fetchall()
-    
-    # Get user's completed challenges
-    completed = cursor.execute(
-        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
-        (session['user_id'],)
-    ).fetchall()
+    # Get all challenges for unlock checking
+    challenges = db_queries.get_all_challenges(conn)
+    completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
     
     # Check if challenge is unlocked (within its category)
@@ -478,10 +295,7 @@ def challenge(challenge_id):
     
     conn.close()
     
-    # Set cookie for challenge 7 (Cookie Investigation)
     response = make_response(render_template('challenge.html', challenge=challenge, is_completed=is_completed, category_url=category_url))
-    if challenge_id == 7:
-        response.set_cookie('challenge_flag', 'COOKIE_FLAG_2024', max_age=3600)
     
     return response
 
@@ -496,9 +310,7 @@ def submit_flag():
         return jsonify({'success': False, 'message': 'Missing challenge ID or flag'})
     
     conn = get_db()
-    cursor = conn.cursor()
-    
-    challenge = cursor.execute('SELECT * FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
+    challenge = db_queries.get_challenge_by_id(conn, challenge_id)
     
     if not challenge:
         conn.close()
@@ -507,17 +319,10 @@ def submit_flag():
     # Check if flag is correct (case-insensitive)
     if flag.strip().upper() == challenge['flag'].upper():
         # Check if already completed
-        existing = cursor.execute(
-            'SELECT * FROM user_progress WHERE user_id = ? AND challenge_id = ?',
-            (session['user_id'], challenge_id)
-        ).fetchone()
+        existing = db_queries.check_challenge_completed(conn, session['user_id'], challenge_id)
         
         if not existing:
-            cursor.execute(
-                'INSERT INTO user_progress (user_id, challenge_id) VALUES (?, ?)',
-                (session['user_id'], challenge_id)
-            )
-            conn.commit()
+            db_queries.complete_challenge(conn, session['user_id'], challenge_id)
             
             # Check and award badges
             new_badges = check_and_award_badges(session['user_id'], challenge_id)
@@ -543,8 +348,7 @@ def get_hint():
         return jsonify({'error': 'Missing challenge ID'})
     
     conn = get_db()
-    cursor = conn.cursor()
-    challenge = cursor.execute('SELECT hint FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
+    challenge = db_queries.get_challenge_by_id(conn, challenge_id)
     conn.close()
     
     if challenge:
