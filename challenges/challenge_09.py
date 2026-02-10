@@ -1,13 +1,13 @@
 """
-Challenge 9: Binary to Text
+Challenge 9: Network Protocol Identification
 """
 challenge = {
-    'title': 'Binary to Text',
-    'description': 'Convert this binary string to text: 01010100 01101000 01100001 01100111 01101000 01110010 01100001 01101000 00100000 01000011 01101000 01100001 01101100 01101100 01100101 01101110 01100111 01100101 00100000 00111001',
-    'hint': 'Each group of 8 bits represents one ASCII character. Convert each byte to decimal, then to its character.',
-    'flag': 'Thaghrah Challenge 9',
-    'expected_outcome': 'Learn binary representation and ASCII conversion',
-    'challenge_type': 'text',
-    'challenge_data': '01010100 01101000 01100001 01100111 01101000 01110010 01100001 01101000 00100000 01000011 01101000 01100001 01101100 01101100 01100101 01101110 01100111 01100101 00100000 00111001',
+    'title': 'Network Protocol Identification',
+    'description': 'Identify the application layer protocol used in this communication. The flag is PROTOCOL_NAME in uppercase (e.g., SMTP, POP3, IMAP, SNMP).',
+    'hint': 'Look at the application layer data in the packets. Check the port numbers and payload. Common protocols: SMTP (25), POP3 (110), IMAP (143), SNMP (161), Telnet (23).',
+    'flag': 'SMTP',
+    'expected_outcome': 'Learn to identify different network protocols from packet analysis',
+    'challenge_type': 'network',
+    'challenge_data': 'SMTP protocol on port 25',
     'order_num': 9
 }

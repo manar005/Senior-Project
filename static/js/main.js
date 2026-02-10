@@ -6,5 +6,3 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Thaghrah platform loaded');
 });
 
-// Challenge 1: Hidden flag in page source
-// THAGHRAH_WELCOME_2024

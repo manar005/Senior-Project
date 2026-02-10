@@ -1,13 +1,13 @@
 """
-Challenge 10: Final Challenge - Combination
+Challenge 10: Network Forensics - Data Exfiltration
 """
 challenge = {
-    'title': 'Final Challenge - Combination',
-    'description': 'You\'ve made it to the final challenge! This flag combines multiple techniques. The answer is: "THAGHRAH_FINAL_CHALLENGE_2024"',
-    'hint': 'You\'ve learned many techniques. This is a straightforward final test. Just submit the flag!',
-    'flag': 'THAGHRAH_FINAL_CHALLENGE_2024',
-    'expected_outcome': 'Demonstrate mastery of basic cybersecurity concepts and encoding techniques',
-    'challenge_type': 'text',
-    'challenge_data': '',
+    'title': 'Network Forensics - Data Exfiltration',
+    'description': 'Sensitive data was exfiltrated through DNS queries. Analyze the DNS packets and decode the base64-encoded data hidden in subdomain queries. The flag is the decoded message.',
+    'hint': 'Filter for DNS queries. Look at the queried domain names. The data might be encoded in subdomains (e.g., dGhpc2lzYXRlc3Q=.example.com). Extract the base64 part before the domain and decode it.',
+    'flag': 'NETWORK_EXFILTRATION_DETECTED',
+    'expected_outcome': 'Learn advanced network forensics and DNS tunneling detection',
+    'challenge_type': 'network',
+    'challenge_data': 'Base64 in DNS: TkVUV09SS19FWElMVFJBVElPTl9ERVRFQ1RFRC5leGFtcGxlLmNvbQ==',
     'order_num': 10
 }

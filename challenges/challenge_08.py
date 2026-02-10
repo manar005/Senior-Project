@@ -1,13 +1,13 @@
 """
-Challenge 8: URL Encoding
+Challenge 8: Port Scanning Detection
 """
 challenge = {
-    'title': 'URL Encoding',
-    'description': 'Decode this URL-encoded string: %54%68%61%67%68%72%61%68%20%43%68%61%6C%6C%65%6E%67%65%20%38',
-    'hint': 'URL encoding uses percent signs followed by hexadecimal values. Each %XX represents one character.',
-    'flag': 'Thaghrah Challenge 8',
-    'expected_outcome': 'Understand URL encoding and percent encoding',
-    'challenge_type': 'text',
-    'challenge_data': '%54%68%61%67%68%72%61%68%20%43%68%61%6C%6C%65%6E%67%65%20%38',
+    'title': 'Port Scanning Detection',
+    'description': 'A port scan was detected. What port range was scanned? The flag is SCAN_RANGE_X_Y where X is the first port and Y is the last port.',
+    'hint': 'Look for multiple connection attempts to different ports from the same source IP. Filter by source IP and look at destination ports. Identify the range of ports that were scanned.',
+    'flag': 'SCAN_RANGE_8080_8090',
+    'expected_outcome': 'Learn to detect port scanning activities in network traffic',
+    'challenge_type': 'network',
+    'challenge_data': 'Ports 8080-8090 scanned from same source',
     'order_num': 8
 }

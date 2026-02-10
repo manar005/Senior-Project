@@ -1,13 +1,13 @@
 """
-Challenge 3: ROT13 Cipher
+Challenge 3: DNS Query Investigation
 """
 challenge = {
-    'title': 'ROT13 Cipher',
-    'description': 'This message was encrypted with ROT13: Guntne Funyybj. Decode it to find the flag.',
-    'hint': 'ROT13 shifts each letter by 13 positions. A becomes N, B becomes O, etc.',
-    'flag': 'Thagar Shallow',
-    'expected_outcome': 'Learn about Caesar cipher and substitution ciphers',
-    'challenge_type': 'text',
-    'challenge_data': 'Guntne Funyybj',
+    'title': 'DNS Query Investigation',
+    'description': 'Someone made a DNS query. What domain name was queried? The flag is the domain name in uppercase with underscores instead of dots (e.g., EXAMPLE_COM).',
+    'hint': 'Filter for DNS packets in Wireshark using "dns" filter. Look at DNS query packets. The queried domain name is in the "Question" section. Convert dots to underscores and uppercase it.',
+    'flag': 'SUSPICIOUS_DOMAIN_XYZ',
+    'expected_outcome': 'Learn DNS protocol and how to analyze DNS queries',
+    'challenge_type': 'network',
+    'challenge_data': 'DNS query for suspicious.domain.xyz',
     'order_num': 3
 }

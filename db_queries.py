@@ -34,10 +34,16 @@ def check_challenge_completed(conn, user_id, challenge_id):
                          (user_id, challenge_id)).fetchone()
 
 def complete_challenge(conn, user_id, challenge_id):
-    """Mark challenge as completed for user"""
-    conn.execute('INSERT INTO user_progress (user_id, challenge_id) VALUES (?, ?)',
-                   (user_id, challenge_id))
-    conn.commit()
+    """Mark challenge as completed for user
+    Returns True if challenge was marked as completed, False if already completed"""
+    # Check if already completed to prevent duplicates
+    existing = check_challenge_completed(conn, user_id, challenge_id)
+    if not existing:
+        conn.execute('INSERT INTO user_progress (user_id, challenge_id) VALUES (?, ?)',
+                       (user_id, challenge_id))
+        conn.commit()
+        return True
+    return False
 
 def get_user_badges(conn, user_id):
     """Get user's earned badges"""
@@ -76,11 +82,6 @@ def award_badge(conn, user_id, badge_id):
 def get_all_badges(conn):
     """Get all badge definitions"""
     return conn.execute('SELECT * FROM badges').fetchall()
-
-def get_challenges_by_category(conn, min_order, max_order):
-    """Get challenges within a specific order range"""
-    return conn.execute('SELECT * FROM challenges WHERE order_num >= ? AND order_num <= ? ORDER BY order_num',
-                         (min_order, max_order)).fetchall()
 
 def get_challenge_count(conn):
     """Get total number of challenges"""

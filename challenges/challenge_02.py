@@ -1,13 +1,13 @@
 """
-Challenge 2: Base64 Decoding
+Challenge 2: TCP Handshake Analysis
 """
 challenge = {
-    'title': 'Base64 Decoding',
-    'description': 'You found this encoded message: VGhhZ2hyYWggQ2hhbGxlbmdlIDI=. Can you decode it?',
-    'hint': 'Base64 is a common encoding scheme. Look for online decoders or Python libraries.',
-    'flag': 'Thaghrah Challenge 2',
-    'expected_outcome': 'Understand basic encoding/decoding techniques',
-    'challenge_type': 'text',
-    'challenge_data': 'VGhhZ2hyYWggQ2hhbGxlbmdlIDI=',
+    'title': 'TCP Handshake Analysis',
+    'description': 'A suspicious connection was made. Analyze the TCP three-way handshake in the captured packets. What is the destination port number? Convert it to hexadecimal and that\'s your flag (format: PORT_0xXXXX).',
+    'hint': 'In Wireshark, look for TCP SYN packets. The destination port is in the TCP header. Common ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 21 (FTP). Convert the decimal port to hex (e.g., 80 = 0x50).',
+    'flag': 'PORT_0x1F90',
+    'expected_outcome': 'Understand TCP handshake process and port identification',
+    'challenge_type': 'network',
+    'challenge_data': 'Find TCP SYN packet. Destination port is 8080 (0x1F90 in hex).',
     'order_num': 2
 }

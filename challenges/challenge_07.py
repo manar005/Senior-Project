@@ -1,13 +1,13 @@
 """
-Challenge 7: Cookie Investigation
+Challenge 7: FTP Credential Extraction
 """
 challenge = {
-    'title': 'Cookie Investigation',
-    'description': 'Check your browser cookies. Sometimes important information is stored there.',
-    'hint': 'Open browser developer tools (F12), go to Application/Storage tab, and check Cookies.',
-    'flag': 'COOKIE_FLAG_2024',
-    'expected_outcome': 'Learn about browser storage and cookies',
-    'challenge_type': 'text',
-    'challenge_data': '',
+    'title': 'FTP Credential Extraction',
+    'description': 'An FTP connection was captured. Extract the username and password from the packets. The flag format is USERNAME_PASSWORD in uppercase.',
+    'hint': 'Filter for FTP traffic using "ftp" filter. FTP sends credentials in plain text. Look for USER and PASS commands in the packet details. The username and password follow these commands.',
+    'flag': 'ADMIN_SECRET123',
+    'expected_outcome': 'Understand FTP protocol security issues and credential extraction',
+    'challenge_type': 'network',
+    'challenge_data': 'FTP login: admin / secret123',
     'order_num': 7
 }

@@ -5,12 +5,19 @@ Thaghrah is an educational and interactive web-based game designed specifically 
 ## Features
 
 - **User Authentication**: Secure registration and login system
-- **10 Progressive Challenges**: Gradually increasing difficulty with various types:
-  - Text-based encoding/decoding challenges
-  - Image steganography
-  - Cookie investigation
-  - Source code inspection
-- **Progress Tracking**: Track completed challenges and unlock new ones
+- **10 Network Security Challenges**: Progressive network analysis challenges covering:
+  - HTTP/HTTPS traffic analysis
+  - TCP handshake and port identification
+  - DNS query investigation
+  - ARP spoofing detection
+  - TLS/SSL analysis
+  - ICMP packet analysis
+  - FTP credential extraction
+  - Port scanning detection
+  - Protocol identification
+  - Network forensics and data exfiltration
+- **Progress Tracking**: Track completed challenges and unlock new ones sequentially
+- **Badge System**: Earn badges for completing challenges and achieving milestones
 - **Hints System**: Get guidance when stuck without spoiling the solution
 - **Modern UI**: Responsive and user-friendly interface
 
@@ -29,11 +36,6 @@ Thaghrah is an educational and interactive web-based game designed specifically 
    ```bash
    pip install -r requirements.txt
    ```
-   
-   **Optional**: For better image support in Challenge 6, install Pillow:
-   ```bash
-   pip install Pillow
-   ```
 
 3. **Run the application**:
    ```bash
@@ -43,10 +45,12 @@ Thaghrah is an educational and interactive web-based game designed specifically 
    The application will automatically:
    - Initialize the database
    - Create challenge data
-   - Generate the challenge image (if Pillow is installed)
+   - Set up badges and user progress tracking
 
 4. **Access the application**:
-   Open your browser and navigate to `http://localhost:5000`
+   Open your browser and navigate to `http://127.0.0.1:5001`
+   
+   **Note**: You'll need Wireshark installed to analyze the pcap files for the network challenges.
 
 ## Usage
 
@@ -58,22 +62,45 @@ Thaghrah is an educational and interactive web-based game designed specifically 
 
 ## Challenge Types
 
-- **Text Encoding**: Base64, ROT13, Hexadecimal, URL encoding, Binary, Morse code
-- **Web Inspection**: Page source, cookies, browser developer tools
-- **Image Analysis**: Steganography and metadata investigation
-- **Logic Puzzles**: Pattern recognition and problem-solving
+All challenges focus on **Network Security** and require packet analysis using Wireshark:
+
+- **HTTP/HTTPS Analysis**: Analyze web traffic, headers, and responses
+- **TCP Analysis**: Understand TCP handshakes, ports, and connections
+- **DNS Investigation**: Analyze DNS queries and responses
+- **ARP Spoofing Detection**: Identify network attacks and spoofing attempts
+- **TLS/SSL Analysis**: Examine encrypted connections and versions
+- **ICMP Analysis**: Understand ICMP packet types and purposes
+- **FTP Analysis**: Extract credentials and analyze file transfer protocols
+- **Port Scanning Detection**: Identify scanning activities in network traffic
+- **Protocol Identification**: Recognize different network protocols
+- **Network Forensics**: Advanced analysis including data exfiltration detection
 
 ## Project Structure
 
 ```
 Senior-Project/
 ├── app.py                 # Flask application
+├── db_queries.py          # Database query helper functions
+├── schema.sql             # Database schema definition
 ├── requirements.txt       # Python dependencies
 ├── thaghrah.db           # SQLite database (created on first run)
+├── challenges/            # Network security challenges
+│   ├── __init__.py
+│   ├── challenge_01.py   # Wireshark Basics - HTTP Traffic
+│   ├── challenge_02.py   # TCP Handshake Analysis
+│   ├── challenge_03.py   # DNS Query Investigation
+│   ├── challenge_04.py   # ARP Spoofing Detection
+│   ├── challenge_05.py   # HTTPS/TLS Analysis
+│   ├── challenge_06.py   # ICMP Packet Analysis
+│   ├── challenge_07.py   # FTP Credential Extraction
+│   ├── challenge_08.py   # Port Scanning Detection
+│   ├── challenge_09.py   # Network Protocol Identification
+│   └── challenge_10.py   # Network Forensics - Data Exfiltration
 ├── templates/            # HTML templates
 │   ├── base.html
 │   ├── login.html
 │   ├── register.html
+│   ├── home.html
 │   ├── dashboard.html
 │   └── challenge.html
 └── static/               # Static files
@@ -83,23 +110,32 @@ Senior-Project/
     │   ├── main.js
     │   └── challenge.js
     └── images/
-        └── hidden_message.png
 ```
 
 ## Learning Outcomes
 
-By completing Thaghrah's challenges, students will:
-- Develop an understanding of basic cybersecurity principles
-- Practice problem-solving and analytical thinking
-- Gain hands-on experience with simple cybersecurity scenarios
-- Build confidence and curiosity to pursue further study in cybersecurity
+By completing Thaghrah's network security challenges, students will:
+- Develop proficiency in using Wireshark for packet analysis
+- Understand network protocols (HTTP, TCP, DNS, ARP, ICMP, FTP, TLS/SSL)
+- Learn to identify network attacks and security threats
+- Practice network forensics and traffic analysis techniques
+- Gain hands-on experience with real-world network security scenarios
+- Build analytical thinking and problem-solving skills in cybersecurity
+- Prepare for advanced network security and penetration testing courses
+
+## Requirements
+
+- **Python 3.x**: Required to run the Flask application
+- **Wireshark**: Required for analyzing pcap files in network challenges
+- **Web Browser**: Modern browser (Chrome, Firefox, Edge, etc.)
 
 ## Notes
 
 - The database is automatically initialized on first run
 - All passwords are securely hashed using Werkzeug
-- Challenges must be completed in order
-- Progress is saved per user account
+- Challenges must be completed in order (sequential unlocking)
+- Progress and badges are saved per user account
+- Pcap files for challenges need to be provided separately (not included in repository)
 
 ## License
 
