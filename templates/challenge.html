@@ -102,13 +102,23 @@
             if (data.success) {
                 resultDiv.className = 'flag-result success';
                 resultDiv.textContent = data.message;
+                
+                // Show badge notification if any badges were earned
+                if (data.new_badges && data.new_badges.length > 0) {
+                    const badgeNames = data.new_badges.map(b => b.name).join(', ');
+                    const badgeIcons = data.new_badges.map(b => b.icon).join(' ');
+                    setTimeout(() => {
+                        alert(`🎉 Congratulations!\n\nYou earned ${data.new_badges.length} badge(s):\n${badgeIcons} ${badgeNames}`);
+                    }, 500);
+                }
+                
                 setTimeout(() => {
                     {% if category_url %}
                     window.location.href = '{{ category_url }}';
                     {% else %}
                     window.location.href = '{{ url_for("home") }}';
                     {% endif %}
-                }, 2000);
+                }, data.new_badges && data.new_badges.length > 0 ? 4000 : 2000);
             } else {
                 resultDiv.className = 'flag-result error';
                 resultDiv.textContent = data.message;

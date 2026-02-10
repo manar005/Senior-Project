@@ -12,6 +12,28 @@
         {% endif %}
     </div>
     
+    {% if user_badges is defined %}
+    <div class="scoring-panel">
+        <div class="scoring-header">
+            <h2>🏆 Your Achievements</h2>
+            <p class="badge-count">{{ user_badges|length }} / {{ total_badges }} Badges Earned</p>
+        </div>
+        {% if user_badges %}
+        <div class="badges-grid">
+            {% for badge in user_badges %}
+            <div class="badge-card earned">
+                <div class="badge-icon">{{ badge.icon }}</div>
+                <div class="badge-name">{{ badge.name }}</div>
+                <div class="badge-description">{{ badge.description }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-badges">Complete challenges to earn badges!</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
     <div class="challenge-selection">
         <h2>Choose Your Learning Path</h2>
         <p class="selection-subtitle">Select a challenge category to begin your cybersecurity journey</p>

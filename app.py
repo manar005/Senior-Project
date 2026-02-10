@@ -4,6 +4,7 @@ import sqlite3
 import os
 from functools import wraps
 import secrets
+from challenges import get_all_challenges, get_general_challenges, get_network_challenges
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -87,111 +88,55 @@ def init_db():
         )
     ''')
     
+    # Badges table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS badges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            icon TEXT NOT NULL,
+            requirement_type TEXT NOT NULL,
+            requirement_value INTEGER NOT NULL
+        )
+    ''')
+    
+    # User badges table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_badges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            badge_id INTEGER NOT NULL,
+            earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (badge_id) REFERENCES badges(id),
+            UNIQUE(user_id, badge_id)
+        )
+    ''')
+    
+    # Insert badges if they don't exist
+    cursor.execute('SELECT COUNT(*) FROM badges')
+    if cursor.fetchone()[0] == 0:
+        badges = [
+            ('First Steps', 'Complete your first challenge', '🎯', 'challenges_completed', 1),
+            ('Getting Started', 'Complete 3 challenges', '🌟', 'challenges_completed', 3),
+            ('Halfway Hero', 'Complete 5 challenges', '🏆', 'challenges_completed', 5),
+            ('Almost There', 'Complete 10 challenges', '💎', 'challenges_completed', 10),
+            ('Champion', 'Complete 15 challenges', '👑', 'challenges_completed', 15),
+            ('Master', 'Complete all 20 challenges', '🏅', 'challenges_completed', 20),
+            ('General Expert', 'Complete all General Cybersecurity challenges', '🔐', 'category_completed', 10),
+            ('Network Guru', 'Complete all Network Security challenges', '🌐', 'category_completed', 20),
+            ('Quick Learner', 'Complete 3 challenges in one day', '⚡', 'daily_challenges', 3),
+            ('Dedicated', 'Complete 5 challenges in one day', '🔥', 'daily_challenges', 5)
+        ]
+        cursor.executemany('''
+            INSERT INTO badges (name, description, icon, requirement_type, requirement_value)
+            VALUES (?, ?, ?, ?, ?)
+        ''', badges)
+    
     # Insert challenges if they don't exist
     cursor.execute('SELECT COUNT(*) FROM challenges')
     if cursor.fetchone()[0] == 0:
-        challenges = [
-            {
-                'title': 'Welcome to Thaghrah',
-                'description': 'Your first challenge! Look at the page source. Sometimes the answer is hidden in plain sight.',
-                'hint': 'Right-click and select "View Page Source" or press Ctrl+U',
-                'flag': 'THAGHRAH_WELCOME_2024',
-                'expected_outcome': 'Learn to inspect web page sources to find hidden information',
-                'challenge_type': 'text',
-                'challenge_data': '',
-                'order_num': 1
-            },
-            {
-                'title': 'Base64 Decoding',
-                'description': 'You found this encoded message: VGhhZ2hyYWggQ2hhbGxlbmdlIDI=. Can you decode it?',
-                'hint': 'Base64 is a common encoding scheme. Look for online decoders or Python libraries.',
-                'flag': 'Thaghrah Challenge 2',
-                'expected_outcome': 'Understand basic encoding/decoding techniques',
-                'challenge_type': 'text',
-                'challenge_data': 'VGhhZ2hyYWggQ2hhbGxlbmdlIDI=',
-                'order_num': 2
-            },
-            {
-                'title': 'ROT13 Cipher',
-                'description': 'This message was encrypted with ROT13: Guntne Funyybj. Decode it to find the flag.',
-                'hint': 'ROT13 shifts each letter by 13 positions. A becomes N, B becomes O, etc.',
-                'flag': 'Thaghr Shyybow',
-                'expected_outcome': 'Learn about Caesar cipher and substitution ciphers',
-                'challenge_type': 'text',
-                'challenge_data': 'Guntne Funyybj',
-                'order_num': 3
-            },
-            {
-                'title': 'Hexadecimal Decoding',
-                'description': 'Decode this hexadecimal string: 54686167726168204368616C6C656E67652034',
-                'hint': 'Convert each pair of hex digits to its ASCII character equivalent.',
-                'flag': 'Thaghrah Challenge 4',
-                'expected_outcome': 'Understand hexadecimal encoding and ASCII conversion',
-                'challenge_type': 'text',
-                'challenge_data': '54686167726168204368616C6C656E67652034',
-                'order_num': 4
-            },
-            {
-                'title': 'Morse Code',
-                'description': 'Decode this Morse code: - .... .- --. .... .-. .- .... / -.-. .... .- .-.. .-.. . -. --. . / ....-',
-                'hint': 'Morse code uses dots and dashes. Each letter has a unique pattern.',
-                'flag': 'THAGHRAH CHALLENGE 5',
-                'expected_outcome': 'Learn Morse code and pattern recognition',
-                'challenge_type': 'text',
-                'challenge_data': '- .... .- --. .... .-. .- .... / -.-. .... .- .-.. .-.. . -. --. . / ....-',
-                'order_num': 5
-            },
-            {
-                'title': 'Hidden in the Image',
-                'description': 'There\'s a secret message hidden in this image. Can you find it?',
-                'hint': 'Try using steganography tools or check the image metadata. Sometimes the answer is in the filename or EXIF data.',
-                'flag': 'IMAGE_STEGANOGRAPHY_FLAG',
-                'expected_outcome': 'Introduction to steganography and image analysis',
-                'challenge_type': 'image',
-                'challenge_data': 'hidden_message.png',
-                'order_num': 6
-            },
-            {
-                'title': 'Cookie Investigation',
-                'description': 'Check your browser cookies. Sometimes important information is stored there.',
-                'hint': 'Open browser developer tools (F12), go to Application/Storage tab, and check Cookies.',
-                'flag': 'COOKIE_FLAG_2024',
-                'expected_outcome': 'Learn about browser storage and cookies',
-                'challenge_type': 'text',
-                'challenge_data': '',
-                'order_num': 7
-            },
-            {
-                'title': 'URL Encoding',
-                'description': 'Decode this URL-encoded string: %54%68%61%67%68%72%61%68%20%43%68%61%6C%6C%65%6E%67%65%20%38',
-                'hint': 'URL encoding uses percent signs followed by hexadecimal values. Each %XX represents one character.',
-                'flag': 'Thaghrah Challenge 8',
-                'expected_outcome': 'Understand URL encoding and percent encoding',
-                'challenge_type': 'text',
-                'challenge_data': '%54%68%61%67%68%72%61%68%20%43%68%61%6C%6C%65%6E%67%65%20%38',
-                'order_num': 8
-            },
-            {
-                'title': 'Binary to Text',
-                'description': 'Convert this binary string to text: 01010100 01101000 01100001 01100111 01101000 01110010 01100001 01101000 00100000 01000011 01101000 01100001 01101100 01101100 01100101 01101110 01100111 01100101 00100000 00111001',
-                'hint': 'Each group of 8 bits represents one ASCII character. Convert each byte to decimal, then to its character.',
-                'flag': 'Thaghrah Challenge 9',
-                'expected_outcome': 'Learn binary representation and ASCII conversion',
-                'challenge_type': 'text',
-                'challenge_data': '01010100 01101000 01100001 01100111 01101000 01110010 01100001 01101000 00100000 01000011 01101000 01100001 01101100 01101100 01100101 01101110 01100111 01100101 00100000 00111001',
-                'order_num': 9
-            },
-            {
-                'title': 'Final Challenge - Combination',
-                'description': 'You\'ve made it to the final challenge! This flag combines multiple techniques. The answer is: "THAGHRAH_FINAL_CHALLENGE_2024"',
-                'hint': 'You\'ve learned many techniques. This is a straightforward final test. Just submit the flag!',
-                'flag': 'THAGHRAH_FINAL_CHALLENGE_2024',
-                'expected_outcome': 'Demonstrate mastery of basic cybersecurity concepts and encoding techniques',
-                'challenge_type': 'text',
-                'challenge_data': '',
-                'order_num': 10
-            }
-        ]
+        challenges = get_all_challenges()
         
         for challenge in challenges:
             cursor.execute('''
@@ -208,130 +153,81 @@ def init_db():
                 challenge['order_num']
             ))
     
-    # Insert network challenges if they don't exist
-    cursor.execute('SELECT COUNT(*) FROM challenges WHERE order_num >= 11 AND order_num <= 20')
-    network_challenges_count = cursor.fetchone()[0]
-    if network_challenges_count == 0:
-        network_challenges = [
-            {
-                'title': 'Wireshark Basics - HTTP Traffic',
-                'description': 'You captured some network traffic. Analyze the HTTP packets to find the secret flag. The flag is hidden in an HTTP response header. Download the pcap file and use Wireshark to analyze it. Look for HTTP responses and check the headers.',
-                'hint': 'Open the pcap file in Wireshark. Filter for HTTP traffic using "http" filter. Look at HTTP response packets and examine the headers. The flag might be in a custom header or in the response body.',
-                'flag': 'NETWORK_HTTP_FLAG_2026',
-                'expected_outcome': 'Learn to use Wireshark for packet analysis and understand HTTP protocol structure',
-                'challenge_type': 'network',
-                'challenge_data': 'Analyze HTTP packets in Wireshark. Filter: http. Check response headers.',
-                'order_num': 11
-            },
-            {
-                'title': 'TCP Handshake Analysis',
-                'description': 'A suspicious connection was made. Analyze the TCP three-way handshake in the captured packets. What is the destination port number? Convert it to hexadecimal and that\'s your flag (format: PORT_0xXXXX).',
-                'hint': 'In Wireshark, look for TCP SYN packets. The destination port is in the TCP header. Common ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 21 (FTP). Convert the decimal port to hex (e.g., 80 = 0x50).',
-                'flag': 'PORT_0x1F90',
-                'expected_outcome': 'Understand TCP handshake process and port identification',
-                'challenge_type': 'network',
-                'challenge_data': 'Find TCP SYN packet. Destination port is 8080 (0x1F90 in hex).',
-                'order_num': 12
-            },
-            {
-                'title': 'DNS Query Investigation',
-                'description': 'Someone made a DNS query. What domain name was queried? The flag is the domain name in uppercase with underscores instead of dots (e.g., EXAMPLE_COM).',
-                'hint': 'Filter for DNS packets in Wireshark using "dns" filter. Look at DNS query packets. The queried domain name is in the "Question" section. Convert dots to underscores and uppercase it.',
-                'flag': 'SUSPICIOUS_DOMAIN_XYZ',
-                'expected_outcome': 'Learn DNS protocol and how to analyze DNS queries',
-                'challenge_type': 'network',
-                'challenge_data': 'DNS query for suspicious.domain.xyz',
-                'order_num': 13
-            },
-            {
-                'title': 'ARP Spoofing Detection',
-                'description': 'Detect ARP spoofing in this network capture. Find the MAC address that appears with multiple IP addresses (indicating ARP spoofing). The flag is that MAC address in uppercase with colons removed.',
-                'hint': 'In Wireshark, filter for ARP packets using "arp" filter. Look for duplicate MAC addresses associated with different IP addresses. This indicates ARP spoofing. Extract the MAC address.',
-                'flag': 'AA1122334455',
-                'expected_outcome': 'Learn to detect ARP spoofing attacks through network analysis',
-                'challenge_type': 'network',
-                'challenge_data': 'MAC address AA:11:22:33:44:55 appears with multiple IPs',
-                'order_num': 14
-            },
-            {
-                'title': 'HTTPS/TLS Analysis',
-                'description': 'Analyze this HTTPS connection. What TLS version was used? The flag format is TLS_VERSION_X_X (e.g., TLS_VERSION_1_3).',
-                'hint': 'Filter for TLS/SSL packets using "tls" or "ssl" filter. Look at the Client Hello packet. The TLS version is shown in the handshake protocol. Common versions: 1.0, 1.1, 1.2, 1.3.',
-                'flag': 'TLS_VERSION_1_2',
-                'expected_outcome': 'Understand TLS/SSL handshake and version identification',
-                'challenge_type': 'network',
-                'challenge_data': 'TLS 1.2 handshake detected',
-                'order_num': 15
-            },
-            {
-                'title': 'ICMP Packet Analysis',
-                'description': 'An ICMP packet was captured. What is the ICMP type code? The flag is ICMP_TYPE_X where X is the type code number.',
-                'hint': 'Filter for ICMP packets using "icmp" filter. The ICMP type is in the ICMP header. Common types: 0 (Echo Reply), 8 (Echo Request), 3 (Destination Unreachable), 11 (Time Exceeded).',
-                'flag': 'ICMP_TYPE_8',
-                'expected_outcome': 'Learn ICMP protocol and packet types',
-                'challenge_type': 'network',
-                'challenge_data': 'ICMP Echo Request (Type 8) packet',
-                'order_num': 16
-            },
-            {
-                'title': 'FTP Credential Extraction',
-                'description': 'An FTP connection was captured. Extract the username and password from the packets. The flag format is USERNAME_PASSWORD in uppercase.',
-                'hint': 'Filter for FTP traffic using "ftp" filter. FTP sends credentials in plain text. Look for USER and PASS commands in the packet details. The username and password follow these commands.',
-                'flag': 'ADMIN_SECRET123',
-                'expected_outcome': 'Understand FTP protocol security issues and credential extraction',
-                'challenge_type': 'network',
-                'challenge_data': 'FTP login: admin / secret123',
-                'order_num': 17
-            },
-            {
-                'title': 'Port Scanning Detection',
-                'description': 'A port scan was detected. What port range was scanned? The flag is SCAN_RANGE_X_Y where X is the first port and Y is the last port.',
-                'hint': 'Look for multiple connection attempts to different ports from the same source IP. Filter by source IP and look at destination ports. Identify the range of ports that were scanned.',
-                'flag': 'SCAN_RANGE_8080_8090',
-                'expected_outcome': 'Learn to detect port scanning activities in network traffic',
-                'challenge_type': 'network',
-                'challenge_data': 'Ports 8080-8090 scanned from same source',
-                'order_num': 18
-            },
-            {
-                'title': 'Network Protocol Identification',
-                'description': 'Identify the application layer protocol used in this communication. The flag is PROTOCOL_NAME in uppercase (e.g., SMTP, POP3, IMAP, SNMP).',
-                'hint': 'Look at the application layer data in the packets. Check the port numbers and payload. Common protocols: SMTP (25), POP3 (110), IMAP (143), SNMP (161), Telnet (23).',
-                'flag': 'SMTP',
-                'expected_outcome': 'Learn to identify different network protocols from packet analysis',
-                'challenge_type': 'network',
-                'challenge_data': 'SMTP protocol on port 25',
-                'order_num': 19
-            },
-            {
-                'title': 'Network Forensics - Data Exfiltration',
-                'description': 'Sensitive data was exfiltrated through DNS queries. Analyze the DNS packets and decode the base64-encoded data hidden in subdomain queries. The flag is the decoded message.',
-                'hint': 'Filter for DNS queries. Look at the queried domain names. The data might be encoded in subdomains (e.g., dGhpc2lzYXRlc3Q=.example.com). Extract the base64 part before the domain and decode it.',
-                'flag': 'NETWORK_EXFILTRATION_DETECTED',
-                'expected_outcome': 'Learn advanced network forensics and DNS tunneling detection',
-                'challenge_type': 'network',
-                'challenge_data': 'Base64 in DNS: TkVUV09SS19FWElMVFJBVElPTl9ERVRFQ1RFRC5leGFtcGxlLmNvbQ==',
-                'order_num': 20
-            }
-        ]
+    conn.commit()
+    conn.close()
+
+def check_and_award_badges(user_id, challenge_id):
+    """Check if user qualifies for any badges and award them"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get user's completed challenges
+    completed = cursor.execute(
+        'SELECT challenge_id FROM user_progress WHERE user_id = ?',
+        (user_id,)
+    ).fetchall()
+    completed_ids = [row[0] for row in completed]
+    total_completed = len(completed_ids)
+    
+    # Get challenge info
+    challenge = cursor.execute('SELECT * FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
+    
+    # Get all badges
+    badges = cursor.execute('SELECT * FROM badges').fetchall()
+    
+    # Get user's existing badges
+    user_badges = cursor.execute(
+        'SELECT badge_id FROM user_badges WHERE user_id = ?',
+        (user_id,)
+    ).fetchall()
+    user_badge_ids = [row[0] for row in user_badges]
+    
+    new_badges = []
+    
+    for badge in badges:
+        if badge['id'] in user_badge_ids:
+            continue  # User already has this badge
         
-        for challenge in network_challenges:
-            cursor.execute('''
-                INSERT INTO challenges (title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                challenge['title'],
-                challenge['description'],
-                challenge['hint'],
-                challenge['flag'],
-                challenge['expected_outcome'],
-                challenge['challenge_type'],
-                challenge['challenge_data'],
-                challenge['order_num']
-            ))
+        requirement_type = badge['requirement_type']
+        requirement_value = badge['requirement_value']
+        
+        if requirement_type == 'challenges_completed':
+            if total_completed >= requirement_value:
+                # Award badge
+                cursor.execute(
+                    'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+                    (user_id, badge['id'])
+                )
+                new_badges.append(badge)
+        
+        elif requirement_type == 'category_completed':
+            # Check if user completed all challenges in a category
+            if requirement_value == 10:  # General challenges (1-10)
+                general_challenges = cursor.execute(
+                    'SELECT id FROM challenges WHERE order_num >= 1 AND order_num <= 10'
+                ).fetchall()
+                general_ids = [row[0] for row in general_challenges]
+                if all(cid in completed_ids for cid in general_ids):
+                    cursor.execute(
+                        'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+                        (user_id, badge['id'])
+                    )
+                    new_badges.append(badge)
+            elif requirement_value == 20:  # Network challenges (11-20)
+                network_challenges = cursor.execute(
+                    'SELECT id FROM challenges WHERE order_num >= 11 AND order_num <= 20'
+                ).fetchall()
+                network_ids = [row[0] for row in network_challenges]
+                if all(cid in completed_ids for cid in network_ids):
+                    cursor.execute(
+                        'INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)',
+                        (user_id, badge['id'])
+                    )
+                    new_badges.append(badge)
     
     conn.commit()
     conn.close()
+    return new_badges
 
 def login_required(f):
     @wraps(f)
@@ -410,7 +306,24 @@ def logout():
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html')
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get user's badges
+    user_badges = cursor.execute('''
+        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
+        FROM badges b
+        INNER JOIN user_badges ub ON b.id = ub.badge_id
+        WHERE ub.user_id = ?
+        ORDER BY ub.earned_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    # Get total badges count
+    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
+    
+    conn.close()
+    
+    return render_template('home.html', user_badges=user_badges, total_badges=total_badges)
 
 @app.route('/challenges/general')
 @login_required
@@ -434,9 +347,20 @@ def general_challenges():
         if i == 0 or challenges[i-1]['id'] in completed_ids:
             unlocked.append(challenge['id'])
     
+    # Get user's badges
+    user_badges = cursor.execute('''
+        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
+        FROM badges b
+        INNER JOIN user_badges ub ON b.id = ub.badge_id
+        WHERE ub.user_id = ?
+        ORDER BY ub.earned_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
+    
     conn.close()
     
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='General Cybersecurity')
+    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='General Cybersecurity', user_badges=user_badges, total_badges=total_badges)
 
 @app.route('/challenges/network')
 @login_required
@@ -460,9 +384,20 @@ def network_challenges():
         if i == 0 or challenges[i-1]['id'] in completed_ids:
             unlocked.append(challenge['id'])
     
+    # Get user's badges
+    user_badges = cursor.execute('''
+        SELECT b.id, b.name, b.description, b.icon, ub.earned_at
+        FROM badges b
+        INNER JOIN user_badges ub ON b.id = ub.badge_id
+        WHERE ub.user_id = ?
+        ORDER BY ub.earned_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    total_badges = cursor.execute('SELECT COUNT(*) FROM badges').fetchone()[0]
+    
     conn.close()
     
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security')
+    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges)
 
 @app.route('/dashboard')
 @login_required
@@ -583,9 +518,17 @@ def submit_flag():
                 (session['user_id'], challenge_id)
             )
             conn.commit()
+            
+            # Check and award badges
+            new_badges = check_and_award_badges(session['user_id'], challenge_id)
+            badge_message = ''
+            if new_badges:
+                badge_names = [badge['name'] for badge in new_badges]
+                badge_message = f' 🏆 Badge earned: {", ".join(badge_names)}!'
         
         conn.close()
-        return jsonify({'success': True, 'message': 'Correct! Challenge completed!'})
+        message = 'Correct! Challenge completed!' + badge_message if 'badge_message' in locals() else 'Correct! Challenge completed!'
+        return jsonify({'success': True, 'message': message, 'new_badges': new_badges if 'new_badges' in locals() else []})
     else:
         conn.close()
         return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
@@ -611,4 +554,4 @@ def get_hint():
 if __name__ == '__main__':
     init_db()
     create_challenge_image()
-    app.run(debug=True)
+    app.run(debug=True, host='127.0.0.1', port=5001)
