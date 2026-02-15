@@ -24,9 +24,7 @@ def init_db():
     # Read and execute schema.sql file
     schema_path = os.path.join(os.path.dirname(__file__), 'schema.sql')
     with open(schema_path, 'r', encoding='utf-8') as f:
-        schema_sql = f.read()
-    
-    conn.executescript(schema_sql)
+        conn.executescript(f.read())
     conn.commit()
     
     # Insert badges if they don't exist
@@ -49,22 +47,10 @@ def init_db():
     # Insert challenges if they don't exist
     if db_queries.get_challenge_count(conn) == 0:
         challenges = get_network_challenges()
-        
-        # Prepare challenge data for batch insert
-        challenge_data = []
-        for idx, challenge in enumerate(challenges, start=1):
-            challenge_data.append((
-                challenge['title'],
-                challenge['description'],
-                challenge['hint'],
-                challenge['flag'],
-                challenge['expected_outcome'],
-                challenge['challenge_type'],
-                challenge.get('challenge_data'),
-                idx
-            ))
-        
-        # Use helper function for batch insert
+        challenge_data = [
+            (c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), idx)
+            for idx, c in enumerate(challenges, start=1)
+        ]
         db_queries.insert_challenges(conn, challenge_data)
     
     conn.close()
@@ -83,16 +69,14 @@ def check_and_award_badges(user_id, challenge_id):
     
     # Get user's existing badges
     user_badge_ids = db_queries.get_user_badge_ids(conn, user_id)
-    
     new_badges = []
-    
+
     for badge in badges:
         if badge['id'] in user_badge_ids:
             continue  # User already has this badge
         
         requirement_type = badge['requirement_type']
         requirement_value = badge['requirement_value']
-        
         if requirement_type == 'challenges_completed':
             if total_completed >= requirement_value:
                 # Award badge (function will check for duplicates)
@@ -101,19 +85,16 @@ def check_and_award_badges(user_id, challenge_id):
         
         elif requirement_type == 'daily_challenges':
             # Check if user completed required number of challenges today
-            from datetime import datetime, date
+            from datetime import date
             today = date.today().isoformat()
-            daily_completed = conn.execute('''
-                SELECT COUNT(DISTINCT challenge_id) 
-                FROM user_progress 
-                WHERE user_id = ? AND DATE(completed_at) = ?
-            ''', (user_id, today)).fetchone()[0]
-            
-            if daily_completed >= requirement_value:
-                # Award badge (function will check for duplicates)
-                if db_queries.award_badge(conn, user_id, badge['id']):
-                    new_badges.append(badge)
-    
+            daily_completed = conn.execute(
+                'SELECT COUNT(DISTINCT challenge_id) FROM user_progress WHERE user_id = ? AND DATE(completed_at) = ?',
+                (user_id, today)
+            ).fetchone()[0]
+            # Award badge (function will check for duplicates)
+            if daily_completed >= requirement_value and db_queries.award_badge(conn, user_id, badge['id']):
+                new_badges.append(badge)
+
     conn.close()
     return new_badges
 
@@ -209,7 +190,6 @@ def home():
     
     return render_template('home.html', user_badges=user_badges, total_badges=total_badges)
 
-
 @app.route('/challenges/network')
 @login_required
 def network_challenges():
@@ -220,67 +200,31 @@ def network_challenges():
     
     # Determine which challenges are unlocked
     unlocked = get_unlocked_challenges(challenges, completed_ids)
-    
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
     conn.close()
     
     return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges)
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    conn = get_db()
-    challenges = db_queries.get_all_challenges(conn)
-    completed = db_queries.get_user_progress(conn, session['user_id'])
-    completed_ids = [row[0] for row in completed]
-    
-    # Determine which challenges are unlocked
-    unlocked = get_unlocked_challenges(challenges, completed_ids)
-    
-    conn.close()
-    
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked)
-
 @app.route('/challenge/<int:challenge_id>')
 @login_required
 def challenge(challenge_id):
-    from flask import make_response
-    
-    # Validate challenge_id
     if challenge_id < 1:
         return redirect(url_for('network_challenges'))
-    
     conn = get_db()
     challenge = db_queries.get_challenge_by_id(conn, challenge_id)
-    
     if not challenge:
         conn.close()
         return redirect(url_for('network_challenges'))
-    
-    # All challenges are network challenges now
-    category_url = url_for('network_challenges')
-    
-    # Get all challenges for unlock checking
     challenges = db_queries.get_all_challenges(conn)
     completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
-    
-    # Check if challenge is unlocked (within its category)
     unlocked = get_unlocked_challenges(challenges, completed_ids)
-    
     if challenge_id not in unlocked:
         conn.close()
-        return redirect(category_url)
-    
-    # Check if already completed
-    is_completed = challenge_id in completed_ids
-    
+        return redirect(url_for('network_challenges'))
     conn.close()
-    
-    response = make_response(render_template('challenge.html', challenge=challenge, is_completed=is_completed, category_url=category_url))
-    
-    return response
+    return render_template('challenge.html', challenge=challenge, is_completed=challenge_id in completed_ids, category_url=url_for('network_challenges'))
 
 @app.route('/submit_flag', methods=['POST'])
 @login_required
@@ -291,8 +235,6 @@ def submit_flag():
     
     if not challenge_id or not flag:
         return jsonify({'success': False, 'message': 'Missing challenge ID or flag'})
-    
-    # Validate challenge_id
     try:
         challenge_id = int(challenge_id)
         if challenge_id < 1:
@@ -306,19 +248,12 @@ def submit_flag():
     if not challenge:
         conn.close()
         return jsonify({'success': False, 'message': 'Challenge not found'})
-    
-    # Check if flag is correct (case-insensitive)
     if flag.strip().upper() == challenge['flag'].upper():
-        # Check if already completed
         existing = db_queries.check_challenge_completed(conn, session['user_id'], challenge_id)
-        
         new_badges = []
         badge_message = ''
-        
         if not existing:
             db_queries.complete_challenge(conn, session['user_id'], challenge_id)
-            
-            # Check and award badges
             new_badges = check_and_award_badges(session['user_id'], challenge_id)
             if new_badges:
                 badge_names = [badge['name'] for badge in new_badges]
@@ -327,26 +262,8 @@ def submit_flag():
         conn.close()
         message = 'Correct! Challenge completed!' + badge_message
         return jsonify({'success': True, 'message': message, 'new_badges': new_badges})
-    else:
-        conn.close()
-        return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
-
-@app.route('/get_hint', methods=['POST'])
-@login_required
-def get_hint():
-    data = request.get_json()
-    challenge_id = data.get('challenge_id')
-    
-    if not challenge_id:
-        return jsonify({'error': 'Missing challenge ID'})
-    
-    conn = get_db()
-    challenge = db_queries.get_challenge_by_id(conn, challenge_id)
     conn.close()
-    
-    if challenge:
-        return jsonify({'hint': challenge['hint']})
-    return jsonify({'error': 'Challenge not found'})
+    return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
 
 if __name__ == '__main__':
     init_db()

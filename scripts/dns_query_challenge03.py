@@ -1,16 +1,10 @@
-"""
-One-off script for creating Challenge 3 pcap.
-Performs a DNS query for dns.query.flag so you can capture it in Wireshark.
-Run this while capturing; the DNS query will appear even if the name doesn't resolve.
-"""
+"""One-off script for Challenge 3 pcap. Sends a DNS query for dns.query.flag (flag: DNS_QUERY_FLAG)."""
 import socket
 
-DOMAIN = "dns.query.flag"  # Flag will be DNS_QUERY_FLAG
+DOMAIN = "dns.query.flag"
 
 if __name__ == "__main__":
-    print(f"Sending DNS query for: {DOMAIN}")
     try:
         socket.getaddrinfo(DOMAIN, 80)
     except socket.gaierror:
-        pass  # Expected if domain doesn't exist; the query still goes on the wire
-    print("Done. Check Wireshark for the DNS query packet.")
+        pass
