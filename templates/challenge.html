@@ -39,6 +39,11 @@
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_02.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
         </div>
+        {% elif challenge.id == 3 %}
+        <div class="challenge-section">
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_03.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+        </div>
         {% endif %}
         
         <div class="challenge-section">
