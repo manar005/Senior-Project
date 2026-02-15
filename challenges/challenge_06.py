@@ -8,6 +8,5 @@ challenge = {
     'flag': 'ICMP_TYPE_8',
     'expected_outcome': 'Learn ICMP protocol and packet types',
     'challenge_type': 'network',
-    'challenge_data': 'ICMP Echo Request (Type 8) packet',
     'order_num': 6
 }

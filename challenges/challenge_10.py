@@ -8,6 +8,5 @@ challenge = {
     'flag': 'NETWORK_EXFILTRATION_DETECTED',
     'expected_outcome': 'Learn advanced network forensics and DNS tunneling detection',
     'challenge_type': 'network',
-    'challenge_data': 'Base64 in DNS: TkVUV09SS19FWElMVFJBVElPTl9ERVRFQ1RFRC5leGFtcGxlLmNvbQ==',
     'order_num': 10
 }

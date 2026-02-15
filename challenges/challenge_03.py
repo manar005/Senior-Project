@@ -8,6 +8,5 @@ challenge = {
     'flag': 'SUSPICIOUS_DOMAIN_XYZ',
     'expected_outcome': 'Learn DNS protocol and how to analyze DNS queries',
     'challenge_type': 'network',
-    'challenge_data': 'DNS query for suspicious.domain.xyz',
     'order_num': 3
 }

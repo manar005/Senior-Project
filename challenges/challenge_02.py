@@ -8,6 +8,5 @@ challenge = {
     'flag': 'PORT_0x1F90',
     'expected_outcome': 'Understand TCP handshake process and port identification',
     'challenge_type': 'network',
-    'challenge_data': 'Find TCP SYN packet. Destination port is 8080 (0x1F90 in hex).',
     'order_num': 2
 }

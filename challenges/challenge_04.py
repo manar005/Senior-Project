@@ -8,6 +8,5 @@ challenge = {
     'flag': 'AA1122334455',
     'expected_outcome': 'Learn to detect ARP spoofing attacks through network analysis',
     'challenge_type': 'network',
-    'challenge_data': 'MAC address AA:11:22:33:44:55 appears with multiple IPs',
     'order_num': 4
 }

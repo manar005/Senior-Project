@@ -8,6 +8,5 @@ challenge = {
     'flag': 'ADMIN_SECRET123',
     'expected_outcome': 'Understand FTP protocol security issues and credential extraction',
     'challenge_type': 'network',
-    'challenge_data': 'FTP login: admin / secret123',
     'order_num': 7
 }

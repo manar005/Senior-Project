@@ -60,7 +60,7 @@ def init_db():
                 challenge['flag'],
                 challenge['expected_outcome'],
                 challenge['challenge_type'],
-                challenge['challenge_data'],
+                challenge.get('challenge_data'),
                 idx
             ))
         

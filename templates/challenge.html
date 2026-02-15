@@ -20,30 +20,26 @@
     
     <div class="challenge-content">
         <div class="challenge-section">
+            <h3>Expected Outcome</h3>
+            <p>{{ challenge.expected_outcome }}</p>
+        </div>
+        
+        <div class="challenge-section">
             <h3>Description</h3>
             <p>{{ challenge.description }}</p>
         </div>
         
-        {% if challenge.challenge_type == 'image' %}
+        {% if challenge.id == 1 %}
         <div class="challenge-section">
-            <h3>Challenge Image</h3>
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/' + challenge.challenge_data) }}" alt="Challenge Image" class="challenge-image">
-            </div>
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_01.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
         </div>
-        {% elif challenge.challenge_data %}
+        {% elif challenge.id == 2 %}
         <div class="challenge-section">
-            <h3>Challenge Data</h3>
-            <div class="data-container">
-                <code>{{ challenge.challenge_data }}</code>
-            </div>
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_02.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
         </div>
         {% endif %}
-        
-        <div class="challenge-section">
-            <h3>Expected Outcome</h3>
-            <p>{{ challenge.expected_outcome }}</p>
-        </div>
         
         <div class="challenge-section">
             <h3>Hint</h3>

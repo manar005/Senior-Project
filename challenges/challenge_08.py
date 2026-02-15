@@ -8,6 +8,5 @@ challenge = {
     'flag': 'SCAN_RANGE_8080_8090',
     'expected_outcome': 'Learn to detect port scanning activities in network traffic',
     'challenge_type': 'network',
-    'challenge_data': 'Ports 8080-8090 scanned from same source',
     'order_num': 8
 }

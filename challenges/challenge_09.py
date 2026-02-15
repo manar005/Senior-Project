@@ -8,6 +8,5 @@ challenge = {
     'flag': 'SMTP',
     'expected_outcome': 'Learn to identify different network protocols from packet analysis',
     'challenge_type': 'network',
-    'challenge_data': 'SMTP protocol on port 25',
     'order_num': 9
 }
