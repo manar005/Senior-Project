@@ -14,35 +14,40 @@
     --text-muted: #a0a0a0;                 /* Muted gray text */
     
     /* Accent Colors */
-    --neon-green: #39ff14;                  /* Neon green for success/progress */
-    --neon-green-dark: #2acc10;             /* Darker neon green */
+    --neon-green: #00d4ff;                  /* Neon blue for success/progress */
+    --neon-green-dark: #00a8cc;             /* Darker neon blue */
     --neon-red: #ff3333;                    /* Red for warnings/errors */
     --neon-red-dark: #cc0000;               /* Darker red */
     
     /* Legacy color mappings for compatibility */
-    --primary-color: #39ff14;               /* Neon green */
+    --primary-color: #00d4ff;               /* Neon blue */
     --secondary-color: #ffffff;             /* White */
-    --success-color: #39ff14;               /* Neon green */
+    --success-color: #00d4ff;               /* Neon blue */
     --error-color: #ff3333;                 /* Red */
     --warning-color: #ff3333;               /* Red for hints/warnings */
     
     /* Borders and shadows */
     --border-color: #333333;                /* Dark gray borders */
-    --border-neon-green: #39ff14;           /* Neon green borders */
+    --border-neon-green: #00d4ff;           /* Neon blue borders */
     --border-neon-red: #ff3333;            /* Red borders */
-    --shadow: 0 2px 8px rgba(57, 255, 20, 0.2);
-    --shadow-hover: 0 4px 16px rgba(57, 255, 20, 0.4);
+    --shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+    --shadow-hover: 0 4px 16px rgba(0, 212, 255, 0.4);
     --shadow-red: 0 2px 8px rgba(255, 51, 51, 0.3);
-    --glow-green: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+    --glow-green: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.3);
     --glow-red: 0 0 10px rgba(255, 51, 51, 0.5), 0 0 20px rgba(255, 51, 51, 0.3);
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
-    background-image: 
-        radial-gradient(circle at 20% 50%, rgba(57, 255, 20, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 51, 51, 0.03) 0%, transparent 50%);
+    background-color: #050508;
+    background-image:
+        radial-gradient(ellipse 120% 80% at 50% 0%, rgba(15, 20, 35, 0.95) 0%, transparent 50%),
+        radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(255, 51, 51, 0.04) 0%, transparent 45%),
+        linear-gradient(180deg, #0a0a0f 0%, #050508 40%, #000000 100%);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
@@ -121,17 +126,17 @@ body {
 
 .nav-links a:hover {
     color: var(--neon-green);
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
-    background-color: rgba(57, 255, 20, 0.1);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+    background-color: rgba(0, 212, 255, 0.1);
 }
 
 .user-email {
     color: var(--text-muted);
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
-    background-color: rgba(57, 255, 20, 0.1);
+    background-color: rgba(0, 212, 255, 0.1);
     border-radius: 4px;
-    border: 1px solid rgba(57, 255, 20, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
 }
 
 /* Main Content */
@@ -229,7 +234,7 @@ body {
 .btn-primary:hover {
     background-color: var(--neon-green-dark);
     transform: translateY(-2px);
-    box-shadow: var(--glow-green), 0 4px 20px rgba(57, 255, 20, 0.4);
+    box-shadow: var(--glow-green), 0 4px 20px rgba(0, 212, 255, 0.4);
 }
 
 .btn-secondary {
@@ -263,7 +268,7 @@ body {
     color: var(--neon-green);
     text-decoration: none;
     font-weight: 500;
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
 }
 
 .auth-link a:hover {
@@ -287,7 +292,7 @@ body {
 }
 
 .alert-success {
-    background-color: rgba(57, 255, 20, 0.1);
+    background-color: rgba(0, 212, 255, 0.1);
     color: var(--neon-green);
     border-color: var(--neon-green);
     box-shadow: var(--shadow);
@@ -368,45 +373,45 @@ body {
 @keyframes glitch {
     0% {
         text-shadow: 
-            0.05em 0 0 rgba(57, 255, 20, 0.75),
+            0.05em 0 0 rgba(0, 212, 255, 0.75),
             -0.05em -0.025em 0 rgba(255, 51, 51, 0.75),
-            0.025em 0.05em 0 rgba(57, 255, 20, 0.75);
+            0.025em 0.05em 0 rgba(0, 212, 255, 0.75);
     }
     15% {
         text-shadow: 
-            0.05em 0 0 rgba(57, 255, 20, 0.75),
+            0.05em 0 0 rgba(0, 212, 255, 0.75),
             -0.05em -0.025em 0 rgba(255, 51, 51, 0.75),
-            0.025em 0.05em 0 rgba(57, 255, 20, 0.75);
+            0.025em 0.05em 0 rgba(0, 212, 255, 0.75);
     }
     16% {
         text-shadow: 
             -0.05em -0.025em 0 rgba(255, 51, 51, 0.75),
-            0.025em 0.025em 0 rgba(57, 255, 20, 0.75),
-            -0.025em -0.05em 0 rgba(57, 255, 20, 0.75);
+            0.025em 0.025em 0 rgba(0, 212, 255, 0.75),
+            -0.025em -0.05em 0 rgba(0, 212, 255, 0.75);
     }
     49% {
         text-shadow: 
             -0.05em -0.025em 0 rgba(255, 51, 51, 0.75),
-            0.025em 0.025em 0 rgba(57, 255, 20, 0.75),
-            -0.025em -0.05em 0 rgba(57, 255, 20, 0.75);
+            0.025em 0.025em 0 rgba(0, 212, 255, 0.75),
+            -0.025em -0.05em 0 rgba(0, 212, 255, 0.75);
     }
     50% {
         text-shadow: 
-            0.025em 0.05em 0 rgba(57, 255, 20, 0.75),
+            0.025em 0.05em 0 rgba(0, 212, 255, 0.75),
             0.05em 0 0 rgba(255, 51, 51, 0.75),
-            0 -0.05em 0 rgba(57, 255, 20, 0.75);
+            0 -0.05em 0 rgba(0, 212, 255, 0.75);
     }
     99% {
         text-shadow: 
-            0.025em 0.05em 0 rgba(57, 255, 20, 0.75),
+            0.025em 0.05em 0 rgba(0, 212, 255, 0.75),
             0.05em 0 0 rgba(255, 51, 51, 0.75),
-            0 -0.05em 0 rgba(57, 255, 20, 0.75);
+            0 -0.05em 0 rgba(0, 212, 255, 0.75);
     }
     100% {
         text-shadow: 
             -0.025em 0 0 rgba(255, 51, 51, 0.75),
-            -0.025em -0.025em 0 rgba(57, 255, 20, 0.75),
-            -0.025em -0.05em 0 rgba(57, 255, 20, 0.75);
+            -0.025em -0.025em 0 rgba(0, 212, 255, 0.75),
+            -0.025em -0.05em 0 rgba(0, 212, 255, 0.75);
     }
 }
 
@@ -431,7 +436,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(to bottom, transparent, rgba(57, 255, 20, 0.1), transparent);
+    background: linear-gradient(to bottom, transparent, rgba(0, 212, 255, 0.1), transparent);
     animation: scanline 8s linear infinite;
     pointer-events: none;
     z-index: 9999;
@@ -483,7 +488,7 @@ body::before {
 
 .challenge-card.completed {
     border-color: var(--neon-green);
-    background: linear-gradient(135deg, rgba(57, 255, 20, 0.1) 0%, rgba(57, 255, 20, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
     box-shadow: var(--shadow);
 }
 
@@ -567,7 +572,7 @@ body::before {
     font-weight: 500;
     margin-bottom: 1rem;
     display: inline-block;
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
     transition: all 0.3s;
 }
 
@@ -654,17 +659,17 @@ body::before {
     width: 100%;
     box-sizing: border-box;
     overflow-x: auto;
-    text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+    text-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
 }
 
 .hint-content {
     margin-top: 1rem;
     padding: 1rem;
-    background-color: rgba(255, 51, 51, 0.1);
-    border-left: 4px solid var(--neon-red);
+    background-color: rgba(0, 212, 255, 0.1);
+    border-left: 4px solid var(--neon-green);
     border-radius: 6px;
-    border: 1px solid rgba(255, 51, 51, 0.3);
-    box-shadow: var(--shadow-red);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow: var(--shadow);
     color: var(--text-light);
 }
 
@@ -700,11 +705,11 @@ body::before {
 }
 
 .flag-result.success {
-    background-color: rgba(57, 255, 20, 0.1);
+    background-color: rgba(0, 212, 255, 0.1);
     color: var(--neon-green);
     border: 1px solid var(--neon-green);
     box-shadow: var(--shadow);
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
 }
 
 .flag-result.error {
@@ -780,7 +785,7 @@ body::before {
 }
 
 .badge-card.earned {
-    background: linear-gradient(135deg, rgba(57, 255, 20, 0.15) 0%, rgba(57, 255, 20, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 212, 255, 0.05) 100%);
     border-color: var(--neon-green);
     opacity: 1;
     box-shadow: var(--shadow);
@@ -806,7 +811,7 @@ body::before {
 
 .badge-card.earned .badge-name {
     color: var(--neon-green);
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
 }
 
 .badge-description {
@@ -869,7 +874,7 @@ body::before {
     width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.5)) drop-shadow(0 0 40px rgba(57, 255, 20, 0.3));
+    filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 40px rgba(0, 212, 255, 0.3));
 }
 
 .dashboard-logo-container {
@@ -884,7 +889,7 @@ body::before {
     width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.5)) drop-shadow(0 0 30px rgba(57, 255, 20, 0.3));
+    filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 30px rgba(0, 212, 255, 0.3));
 }
 
 .challenge-selection {
