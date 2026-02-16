@@ -1,8 +1,5 @@
-# Thaghrah – Project Logic & Code Explanation (Audit)
+# Thaghrah 
 
-This document explains the **logic of the project** and the **code in detail** for audit purposes, based on the README and the codebase.
-
----
 
 # Part 1: Project Logic
 
