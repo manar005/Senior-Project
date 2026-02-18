@@ -248,7 +248,18 @@ def submit_flag():
     if not challenge:
         conn.close()
         return jsonify({'success': False, 'message': 'Challenge not found'})
-    if flag.strip().upper() == challenge['flag'].upper():
+    # Normalize: strip whitespace, handle bytes/str from DB, remove invisible chars
+    def normalize_flag(s):
+        if s is None:
+            return ''
+        if isinstance(s, bytes):
+            s = s.decode('utf-8', errors='ignore')
+        s = str(s).strip()
+        for c in '\ufeff\u200b\u200c\u200d\u200e\u200f':
+            s = s.replace(c, '')
+        return s.upper()
+    stored_flag = challenge['flag']  # Row may return str or bytes depending on SQLite/driver
+    if normalize_flag(flag) == normalize_flag(stored_flag):
         existing = db_queries.check_challenge_completed(conn, session['user_id'], challenge_id)
         new_badges = []
         badge_message = ''

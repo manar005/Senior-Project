@@ -82,3 +82,46 @@ On some systems, ICMP to 127.0.0.1 may be handled internally and not appear on t
 ### Port note
 
 The script uses port **2525** (SMTP alternate) so it does not require administrator/root. Standard SMTP is port 25.
+
+---
+
+## Challenge 7 – TCP Handshake Count
+
+**Flag (submission):** `HANDSHAKES_3` (number of complete TCP three-way handshakes).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface (e.g. **Loopback** or **Adapter for loopback traffic**).
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/tcp_handshakes_challenge07.py
+   ```
+   The script opens **3 TCP connections** to **127.0.0.1:9999** (server accepts 3, then exits). Each connection produces one complete three-way handshake (SYN → SYN,ACK → ACK).
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_07.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`tcp`**. Count **complete three-way handshakes**: one [SYN], one [SYN, ACK], one [ACK] per connection.
+- Solver submits **HANDSHAKES_3**.
+
+---
+
+## Challenge 8 – TCP Fragmentation
+
+**Flag (submission):** `REASSEMBLE_ME` (reassemble the fragments from the TCP streams).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/tcp_fragmented_flag_challenge08.py
+   ```
+   The script opens **4 separate TCP connections** to **127.0.0.1:8888**; each connection sends one fragment (REAS, SEMB, LE_M, E). So each "Follow TCP Stream" shows only one fragment.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_08.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`tcp.port == 8888`**. Use **Follow → TCP Stream** on each connection (stream 0, 1, 2, 3); each stream shows one fragment. Concatenate in order to get **REASSEMBLE_ME**.

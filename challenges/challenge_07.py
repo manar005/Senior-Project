@@ -1,12 +1,12 @@
 """
-Challenge 7: ARP Spoofing Detection (content from former challenge 4)
+Challenge 7: TCP Handshake Count
 """
 challenge = {
-    'title': 'ARP Spoofing Detection',
-    'description': 'Detect ARP spoofing in this network capture. Find the MAC address that appears with multiple IP addresses (indicating ARP spoofing). The flag is that MAC address in uppercase with colons removed.',
-    'hint': 'In Wireshark, filter for ARP packets using "arp" filter. Look for duplicate MAC addresses associated with different IP addresses. This indicates ARP spoofing. Extract the MAC address.',
-    'flag': 'AA1122334455',
-    'expected_outcome': 'Learn to detect ARP spoofing attacks through network analysis',
+    'title': 'TCP Handshake Count',
+    'description': 'How many complete TCP three-way handshakes (SYN → SYN,ACK → ACK) are in this capture? The flag is HANDSHAKES_X where X is that number.',
+    'hint': 'Filter for TCP. A three-way handshake is: one packet with [SYN], one with [SYN, ACK], one with [ACK]. Count how many such sequences complete in the capture.',
+    'flag': 'HANDSHAKES_3',
+    'expected_outcome': 'Learn to recognize TCP three-way handshakes in packet captures',
     'challenge_type': 'network',
     'order_num': 7
 }

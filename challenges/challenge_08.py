@@ -1,12 +1,12 @@
 """
-Challenge 8: Port Scanning Detection
+Challenge 8: TCP Fragmentation
 """
 challenge = {
-    'title': 'Port Scanning Detection',
-    'description': 'A port scan was detected. What port range was scanned? The flag is SCAN_RANGE_X_Y where X is the first port and Y is the last port.',
-    'hint': 'Look for multiple connection attempts to different ports from the same source IP. Filter by source IP and look at destination ports. Identify the range of ports that were scanned.',
-    'flag': 'SCAN_RANGE_8080_8090',
-    'expected_outcome': 'Learn to detect port scanning activities in network traffic',
+    'title': 'TCP Fragmentation',
+    'description': 'The flag was sent in fragments across multiple TCP connections on port 8888. Each connection carries one fragment. Concatenate the fragments in order to recover the full flag, then submit it.',
+    'hint': 'Filter by "tcp.port == 8888". You will see several TCP connections. Click on packets with length>0 and see the fragments in the payload. Another way is to right click a packet → Follow → TCP Stream: each stream shows only one fragment. Open each stream in order (tcp.stream eq 0, then 1, then 2, then 3) and concatenate to get the flag.',
+    'flag': 'REASSEMBLE_ME',
+    'expected_outcome': 'Learn how data can be split across TCP segments and how to reassemble it',
     'challenge_type': 'network',
     'order_num': 8
 }

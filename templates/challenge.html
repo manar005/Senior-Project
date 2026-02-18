@@ -59,6 +59,16 @@
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_06.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
         </div>
+        {% elif challenge.id == 7 %}
+        <div class="challenge-section">
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_07.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+        </div>
+        {% elif challenge.id == 8 %}
+        <div class="challenge-section">
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_08.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+        </div>
         {% endif %}
         
         <div class="challenge-section">
@@ -93,9 +103,12 @@
     
     document.getElementById('flag-form').addEventListener('submit', async function(e) {
         e.preventDefault();
+        const form = document.getElementById('flag-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
         
         const challengeId = document.getElementById('challenge-id').value;
-        const flag = document.getElementById('flag-input').value;
+        const flag = document.getElementById('flag-input').value.trim();
         const resultDiv = document.getElementById('flag-result');
         
         try {
@@ -135,10 +148,12 @@
             } else {
                 resultDiv.className = 'flag-result error';
                 resultDiv.textContent = data.message;
+                submitBtn.disabled = false;
             }
         } catch (error) {
             resultDiv.className = 'flag-result error';
             resultDiv.textContent = 'An error occurred. Please try again.';
+            submitBtn.disabled = false;
         }
     });
 </script>
