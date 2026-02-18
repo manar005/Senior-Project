@@ -49,6 +49,16 @@
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_04.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
         </div>
+        {% elif challenge.id == 5 %}
+        <div class="challenge-section">
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_05.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+        </div>
+        {% elif challenge.id == 6 %}
+        <div class="challenge-section">
+            <h3>Capture file</h3>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_06.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+        </div>
         {% endif %}
         
         <div class="challenge-section">

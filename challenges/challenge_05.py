@@ -1,12 +1,12 @@
 """
-Challenge 5: HTTPS/TLS Analysis
+Challenge 5: ICMP Packet Analysis (content from former challenge 6)
 """
 challenge = {
-    'title': 'HTTPS/TLS Analysis',
-    'description': 'Analyze this HTTPS connection. What TLS version was used? The flag format is TLS_VERSION_X_X (e.g., TLS_VERSION_1_3).',
-    'hint': 'Filter for TLS/SSL packets using "tls" or "ssl" filter. Look at the Client Hello packet. The TLS version is shown in the handshake protocol. Common versions: 1.0, 1.1, 1.2, 1.3.',
-    'flag': 'TLS_VERSION_1_2',
-    'expected_outcome': 'Understand TLS/SSL handshake and version identification',
+    'title': 'ICMP Packet Analysis',
+    'description': 'An ICMP packet was captured. What is the ICMP type code? The flag is ICMP_TYPE_X where X is the type code number.',
+    'hint': 'Filter for ICMP packets using "icmp" filter. The ICMP type is in the ICMP header. Common types: 0 (Echo Reply), 8 (Echo Request), 3 (Destination Unreachable), 11 (Time Exceeded).',
+    'flag': 'ICMP_TYPE_8',
+    'expected_outcome': 'Learn ICMP protocol and packet types',
     'challenge_type': 'network',
     'order_num': 5
 }

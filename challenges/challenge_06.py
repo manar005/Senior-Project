@@ -1,12 +1,12 @@
 """
-Challenge 6: ICMP Packet Analysis
+Challenge 6: Network Protocol Identification
 """
 challenge = {
-    'title': 'ICMP Packet Analysis',
-    'description': 'An ICMP packet was captured. What is the ICMP type code? The flag is ICMP_TYPE_X where X is the type code number.',
-    'hint': 'Filter for ICMP packets using "icmp" filter. The ICMP type is in the ICMP header. Common types: 0 (Echo Reply), 8 (Echo Request), 3 (Destination Unreachable), 11 (Time Exceeded).',
-    'flag': 'ICMP_TYPE_8',
-    'expected_outcome': 'Learn ICMP protocol and packet types',
+    'title': 'Network Protocol Identification',
+    'description': 'Identify the application layer protocol used in this communication. The traffic you need uses port 2525. The flag is the protocol name in uppercase (e.g., SMTP, POP3, IMAP, SNMP).',
+    'hint': 'Filter by "tcp.port == 2525" to see the traffic. Look at the payload (Follow → TCP Stream): you will see the protocol name. Submit it as the flag.',
+    'flag': 'SMTP',
+    'expected_outcome': 'Learn to identify different network protocols from packet analysis',
     'challenge_type': 'network',
     'order_num': 6
 }
