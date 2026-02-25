@@ -6,19 +6,20 @@ Thaghrah is an educational and interactive web-based game designed specifically 
 
 - **User Authentication**: Secure registration and login system
 - **10 Network Security Challenges**: Progressive network analysis challenges covering:
-  - HTTP/HTTPS traffic analysis
+  - HTTP traffic analysis (Wireshark basics)
   - TCP handshake and port identification
   - DNS query investigation
-  - ARP spoofing detection
-  - TLS/SSL analysis
-  - ICMP packet analysis
   - FTP credential extraction
-  - Port scanning detection
-  - Protocol identification
+  - ICMP packet analysis
+  - Network protocol identification
+  - TCP handshake counting
+  - TCP fragmentation and reassembly
+  - HTTPS/TLS analysis
   - Network forensics and data exfiltration
 - **Progress Tracking**: Track completed challenges and unlock new ones sequentially
+- **Points System**: Earn points for each correct flag; full points without hints, 50% points if you use the hint
 - **Badge System**: Earn badges for completing challenges and achieving milestones
-- **Hints System**: Get guidance when stuck without spoiling the solution
+- **Hints System**: Get guidance when stuck without spoiling the solution (using a hint reduces points for that challenge)
 - **Modern UI**: Responsive and user-friendly interface
 
 ## Technology Stack
@@ -64,16 +65,16 @@ Thaghrah is an educational and interactive web-based game designed specifically 
 
 All challenges focus on **Network Security** and require packet analysis using Wireshark:
 
-- **HTTP/HTTPS Analysis**: Analyze web traffic, headers, and responses
-- **TCP Analysis**: Understand TCP handshakes, ports, and connections
-- **DNS Investigation**: Analyze DNS queries and responses
-- **ARP Spoofing Detection**: Identify network attacks and spoofing attempts
-- **TLS/SSL Analysis**: Examine encrypted connections and versions
-- **ICMP Analysis**: Understand ICMP packet types and purposes
-- **FTP Analysis**: Extract credentials and analyze file transfer protocols
-- **Port Scanning Detection**: Identify scanning activities in network traffic
-- **Protocol Identification**: Recognize different network protocols
-- **Network Forensics**: Advanced analysis including data exfiltration detection
+1. **Wireshark Basics - HTTP Traffic**: Analyze web traffic, headers, and responses
+2. **TCP Handshake Analysis**: Understand TCP handshakes, ports, and connections
+3. **DNS Query Investigation**: Analyze DNS queries and encoded flags in domain names
+4. **FTP Credential Extraction**: Extract credentials from FTP traffic (port 2121)
+5. **ICMP Packet Analysis**: Understand ICMP packet types and purposes
+6. **Network Protocol Identification**: Identify application-layer protocols (e.g., SMTP on port 2525)
+7. **TCP Handshake Count**: Count complete three-way handshakes in a capture
+8. **TCP Fragmentation**: Reassemble a flag split across multiple TCP streams (port 8888)
+9. **HTTPS/TLS Analysis**: Examine TLS version and handshake in encrypted connections
+10. **Network Forensics - Data Exfiltration**: Detect base64-encoded data in DNS subdomain queries
 
 ## Project Structure
 
@@ -89,12 +90,12 @@ Senior-Project/
 │   ├── challenge_01.py   # Wireshark Basics - HTTP Traffic
 │   ├── challenge_02.py   # TCP Handshake Analysis
 │   ├── challenge_03.py   # DNS Query Investigation
-│   ├── challenge_04.py   # ARP Spoofing Detection
-│   ├── challenge_05.py   # HTTPS/TLS Analysis
-│   ├── challenge_06.py   # ICMP Packet Analysis
-│   ├── challenge_07.py   # FTP Credential Extraction
-│   ├── challenge_08.py   # Port Scanning Detection
-│   ├── challenge_09.py   # Network Protocol Identification
+│   ├── challenge_04.py   # FTP Credential Extraction
+│   ├── challenge_05.py   # ICMP Packet Analysis
+│   ├── challenge_06.py   # Network Protocol Identification
+│   ├── challenge_07.py   # TCP Handshake Count
+│   ├── challenge_08.py   # TCP Fragmentation
+│   ├── challenge_09.py   # HTTPS/TLS Analysis
 │   └── challenge_10.py   # Network Forensics - Data Exfiltration
 ├── templates/            # HTML templates
 │   ├── base.html
@@ -116,10 +117,11 @@ Senior-Project/
 
 By completing Thaghrah's network security challenges, students will:
 - Develop proficiency in using Wireshark for packet analysis
-- Understand network protocols (HTTP, TCP, DNS, ARP, ICMP, FTP, TLS/SSL)
-- Learn to identify network attacks and security threats
-- Practice network forensics and traffic analysis techniques
-- Gain hands-on experience with real-world network security scenarios
+- Understand network protocols (HTTP, TCP, DNS, FTP, ICMP, TLS/SSL)
+- Learn to extract credentials and identify protocols from traffic
+- Practice TCP handshake recognition, fragmentation, and reassembly
+- Analyze TLS/SSL handshakes and encrypted connection details
+- Gain hands-on experience with DNS-based data exfiltration detection
 - Build analytical thinking and problem-solving skills in cybersecurity
 - Prepare for advanced network security and penetration testing courses
 
@@ -135,6 +137,7 @@ By completing Thaghrah's network security challenges, students will:
 - All passwords are securely hashed using Werkzeug
 - Challenges must be completed in order (sequential unlocking)
 - Progress and badges are saved per user account
+- Each challenge awards points (e.g. 100) for a correct flag; using the hint before solving gives half points
 - Pcap files for challenges need to be provided separately (not included in repository)
 
 ## License

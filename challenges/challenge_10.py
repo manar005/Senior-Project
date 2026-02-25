@@ -8,5 +8,6 @@ challenge = {
     'flag': 'NETWORK_EXFILTRATION_DETECTED',
     'expected_outcome': 'Learn advanced network forensics and DNS tunneling detection',
     'challenge_type': 'network',
-    'order_num': 10
+    'order_num': 10,
+    'points': 100
 }

@@ -24,26 +24,34 @@ def get_challenge_by_id(conn, challenge_id):
     return conn.execute('SELECT * FROM challenges WHERE id = ?', (challenge_id,)).fetchone()
 
 def get_user_progress(conn, user_id):
-    """Get user's completed challenges"""
-    return conn.execute('SELECT challenge_id FROM user_progress WHERE user_id = ?', 
-                         (user_id,)).fetchall()
+    """Get user's completed challenges (challenge_id, points_earned, used_hint)"""
+    return conn.execute(
+        'SELECT challenge_id, points_earned, used_hint FROM user_progress WHERE user_id = ?',
+        (user_id,)
+    ).fetchall()
 
 def check_challenge_completed(conn, user_id, challenge_id):
     """Check if user has completed a challenge"""
     return conn.execute('SELECT * FROM user_progress WHERE user_id = ? AND challenge_id = ?',
                          (user_id, challenge_id)).fetchone()
 
-def complete_challenge(conn, user_id, challenge_id):
-    """Mark challenge as completed for user
+def complete_challenge(conn, user_id, challenge_id, used_hint=False, points_earned=0):
+    """Mark challenge as completed for user with optional hint usage and points earned.
     Returns True if challenge was marked as completed, False if already completed"""
-    # Check if already completed to prevent duplicates
     existing = check_challenge_completed(conn, user_id, challenge_id)
     if not existing:
-        conn.execute('INSERT INTO user_progress (user_id, challenge_id) VALUES (?, ?)',
-                       (user_id, challenge_id))
+        conn.execute(
+            'INSERT INTO user_progress (user_id, challenge_id, used_hint, points_earned) VALUES (?, ?, ?, ?)',
+            (user_id, challenge_id, 1 if used_hint else 0, points_earned)
+        )
         conn.commit()
         return True
     return False
+
+def get_user_total_points(conn, user_id):
+    """Get total points earned by user"""
+    row = conn.execute('SELECT COALESCE(SUM(points_earned), 0) FROM user_progress WHERE user_id = ?', (user_id,)).fetchone()
+    return row[0] if row else 0
 
 def get_user_badges(conn, user_id):
     """Get user's earned badges"""
@@ -96,7 +104,7 @@ def get_badge_count(conn):
 def insert_challenges(conn, challenge_data_list):
     """Insert multiple challenges using batch insert"""
     conn.executemany('''
-        INSERT INTO challenges (title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO challenges (title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', challenge_data_list)
     conn.commit()

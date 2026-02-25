@@ -8,5 +8,6 @@ challenge = {
     'flag': 'HANDSHAKES_3',
     'expected_outcome': 'Learn to recognize TCP three-way handshakes in packet captures',
     'challenge_type': 'network',
-    'order_num': 7
+    'order_num': 7,
+    'points': 100
 }

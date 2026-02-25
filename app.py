@@ -27,6 +27,18 @@ def init_db():
         conn.executescript(f.read())
     conn.commit()
     
+    # Migration: add points/used_hint/points_earned to existing databases
+    for sql in [
+        'ALTER TABLE challenges ADD COLUMN points INTEGER NOT NULL DEFAULT 100',
+        'ALTER TABLE user_progress ADD COLUMN used_hint INTEGER NOT NULL DEFAULT 0',
+        'ALTER TABLE user_progress ADD COLUMN points_earned INTEGER NOT NULL DEFAULT 0',
+    ]:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+    
     # Insert badges if they don't exist
     if db_queries.get_badge_count(conn) == 0:
         badges_data = [
@@ -48,7 +60,7 @@ def init_db():
     if db_queries.get_challenge_count(conn) == 0:
         challenges = get_network_challenges()
         challenge_data = [
-            (c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), idx)
+            (c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), idx, c.get('points', 100))
             for idx, c in enumerate(challenges, start=1)
         ]
         db_queries.insert_challenges(conn, challenge_data)
@@ -180,15 +192,26 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/api/me')
+@login_required
+def api_me():
+    """Return current user stats for nav (points, badges)."""
+    conn = get_db()
+    total_points = db_queries.get_user_total_points(conn, session['user_id'])
+    badges = db_queries.get_user_badges(conn, session['user_id'])
+    conn.close()
+    return jsonify({'points': total_points, 'badges': len(badges)})
+
 @app.route('/home')
 @login_required
 def home():
     conn = get_db()
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
+    total_points = db_queries.get_user_total_points(conn, session['user_id'])
     conn.close()
     
-    return render_template('home.html', user_badges=user_badges, total_badges=total_badges)
+    return render_template('home.html', user_badges=user_badges, total_badges=total_badges, total_points=total_points)
 
 @app.route('/challenges/network')
 @login_required
@@ -202,9 +225,10 @@ def network_challenges():
     unlocked = get_unlocked_challenges(challenges, completed_ids)
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
+    total_points = db_queries.get_user_total_points(conn, session['user_id'])
     conn.close()
     
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges)
+    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges, total_points=total_points)
 
 @app.route('/challenge/<int:challenge_id>')
 @login_required
@@ -232,6 +256,7 @@ def submit_flag():
     data = request.get_json()
     challenge_id = data.get('challenge_id')
     flag = data.get('flag')
+    used_hint = bool(data.get('used_hint', False))
     
     if not challenge_id or not flag:
         return jsonify({'success': False, 'message': 'Missing challenge ID or flag'})
@@ -263,16 +288,27 @@ def submit_flag():
         existing = db_queries.check_challenge_completed(conn, session['user_id'], challenge_id)
         new_badges = []
         badge_message = ''
+        points_earned = 0
+        base_points = 100
+        if 'points' in challenge.keys():
+            try:
+                base_points = int(challenge['points'])
+            except (TypeError, ValueError):
+                pass
+        if used_hint:
+            points_earned = max(0, base_points // 2)  # 50% when hint used
+        else:
+            points_earned = base_points
         if not existing:
-            db_queries.complete_challenge(conn, session['user_id'], challenge_id)
+            db_queries.complete_challenge(conn, session['user_id'], challenge_id, used_hint=used_hint, points_earned=points_earned)
             new_badges = check_and_award_badges(session['user_id'], challenge_id)
             if new_badges:
                 badge_names = [badge['name'] for badge in new_badges]
                 badge_message = f' 🏆 Badge earned: {", ".join(badge_names)}!'
         
         conn.close()
-        message = 'Correct! Challenge completed!' + badge_message
-        return jsonify({'success': True, 'message': message, 'new_badges': new_badges})
+        message = f'Correct! Challenge completed! +{points_earned} points.' + badge_message
+        return jsonify({'success': True, 'message': message, 'new_badges': new_badges, 'points_earned': points_earned})
     conn.close()
     return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
 

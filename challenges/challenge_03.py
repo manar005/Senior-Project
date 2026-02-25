@@ -8,5 +8,6 @@ challenge = {
     'flag': 'DNS_QUERY_FLAG',
     'expected_outcome': 'Learn DNS protocol and how to analyze DNS queries',
     'challenge_type': 'network',
-    'order_num': 3
+    'order_num': 3,
+    'points': 100
 }

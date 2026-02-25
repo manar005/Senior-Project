@@ -8,5 +8,6 @@ challenge = {
     'flag': 'TLS_VERSION_1_2',
     'expected_outcome': 'Understand TLS/SSL handshake and version identification',
     'challenge_type': 'network',
-    'order_num': 9
+    'order_num': 9,
+    'points': 100
 }

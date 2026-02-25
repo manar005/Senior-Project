@@ -8,5 +8,6 @@ challenge = {
     'flag': 'NETWORK_HTTP_FLAG',
     'expected_outcome': 'Learn to use Wireshark for packet analysis and understand HTTP protocol structure',
     'challenge_type': 'network',
-    'order_num': 1
+    'order_num': 1,
+    'points': 100
 }

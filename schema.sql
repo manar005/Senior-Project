@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS challenges (
     expected_outcome TEXT NOT NULL,
     challenge_type TEXT NOT NULL,
     challenge_data TEXT,
-    order_num INTEGER NOT NULL
+    order_num INTEGER NOT NULL,
+    points INTEGER NOT NULL DEFAULT 100
 );
 
 -- User progress table
@@ -29,6 +30,8 @@ CREATE TABLE IF NOT EXISTS user_progress (
     user_id INTEGER NOT NULL,
     challenge_id INTEGER NOT NULL,
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    used_hint INTEGER NOT NULL DEFAULT 0,
+    points_earned INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (challenge_id) REFERENCES challenges(id),
     UNIQUE(user_id, challenge_id)

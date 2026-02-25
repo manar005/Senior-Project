@@ -1,102 +1,105 @@
 {% extends "base.html" %}
 
-{% block title %}{{ challenge.title }} - Thaghrah{% endblock %}
+{% block title %}{{ challenge.title }} — Thaghrah{% endblock %}
 
-{% block extra_head %}
-{% endblock %}
+{% block extra_head %}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="challenge-header-page">
-        <a href="{% if category_url %}{{ category_url }}{% else %}{{ url_for('home') }}{% endif %}" class="back-link">← Back to Challenges</a>
+    <header class="challenge-header-page">
+        <a href="{% if category_url %}{{ category_url }}{% else %}{{ url_for('home') }}{% endif %}" class="back-link">← Back to challenges</a>
         <h2>{{ challenge.title }}</h2>
-    </div>
+    </header>
     
     {% if is_completed %}
-    <div class="alert alert-success">
-        ✓ Congratulations! You've completed this challenge!
-    </div>
+    <div class="alert alert-success">You’ve completed this challenge.</div>
     {% endif %}
     
-    <div class="challenge-content">
-        <div class="challenge-section">
-            <h3>Expected Outcome</h3>
+    <article class="challenge-content">
+        <section class="challenge-section">
+            <h3>Expected outcome</h3>
             <p>{{ challenge.expected_outcome }}</p>
-        </div>
+        </section>
         
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Description</h3>
             <p>{{ challenge.description }}</p>
-        </div>
+        </section>
         
         {% if challenge.id == 1 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_01.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 2 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_02.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 3 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_03.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 4 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_04.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 5 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_05.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 6 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_06.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 7 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_07.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% elif challenge.id == 8 %}
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_08.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </div>
+        </section>
         {% endif %}
         
-        <div class="challenge-section">
+        <section class="challenge-section">
             <h3>Hint</h3>
-            <button id="show-hint-btn" class="btn btn-secondary">Show Hint</button>
+            <button type="button" id="show-hint-btn" class="btn btn-secondary">Show hint</button>
+            <p class="points-note">Using the hint reduces the points you earn for this challenge.</p>
             <div id="hint-content" class="hint-content" style="display: none;">
                 <p>{{ challenge.hint }}</p>
             </div>
-        </div>
+        </section>
         
-        <div class="challenge-section">
-            <h3>Submit Flag</h3>
+        <section class="challenge-section">
+            <h3>Submit flag</h3>
+            <p class="points-value">Worth <strong>{{ challenge.points | default(100) }}</strong> points (full score), or <strong>{{ (challenge.points | default(100)) // 2 }}</strong> if you use the hint.</p>
             <form id="flag-form" class="flag-form">
                 <input type="hidden" id="challenge-id" value="{{ challenge.id }}">
+                <input type="hidden" id="used-hint" value="0">
                 <div class="form-group">
-                    <input type="text" id="flag-input" placeholder="Enter the flag here..." class="flag-input" required>
+                    <input type="text" id="flag-input" placeholder="Enter the flag…" class="flag-input" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Submit Flag</button>
+                <button type="submit" class="btn btn-primary">Submit flag</button>
             </form>
             <div id="flag-result" class="flag-result"></div>
-        </div>
-    </div>
+        </section>
+    </article>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+    let usedHint = false;
     document.getElementById('show-hint-btn').addEventListener('click', function() {
+        usedHint = true;
+        document.getElementById('used-hint').value = '1';
         const hintContent = document.getElementById('hint-content');
         hintContent.style.display = hintContent.style.display === 'none' ? 'block' : 'none';
     });
@@ -119,7 +122,8 @@
                 },
                 body: JSON.stringify({
                     challenge_id: parseInt(challengeId),
-                    flag: flag
+                    flag: flag,
+                    used_hint: usedHint
                 })
             });
             
