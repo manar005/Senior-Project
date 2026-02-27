@@ -5,6 +5,7 @@ Thaghrah is an educational and interactive web-based game designed specifically 
 ## Features
 
 - **User Authentication**: Secure registration and login system
+- **Forgot Password**: Request a reset link by email; click the link to set a new password
 - **10 Network Security Challenges**: Progressive network analysis challenges covering:
   - HTTP traffic analysis (Wireshark basics)
   - TCP handshake and port identification
@@ -53,13 +54,26 @@ Thaghrah is an educational and interactive web-based game designed specifically 
    
    **Note**: You'll need Wireshark installed to analyze the pcap files for the network challenges.
 
+**Optional – Email for forgot password**
+To send reset links by email (e.g. in production), set these environment variables before running the app:
+
+- `MAIL_SERVER` – SMTP server (e.g. `smtp.gmail.com`)
+- `MAIL_PORT` – e.g. `587`
+- `MAIL_USE_TLS` – `1` for TLS
+- `MAIL_USERNAME` – SMTP username
+- `MAIL_PASSWORD` – SMTP password or app password
+- `MAIL_FROM` – Sender address (e.g. `noreply@yourdomain.com`)
+
+If `MAIL_SERVER` is not set, the app still runs: the reset link is printed in the console so you can test forgot-password locally.
+
 ## Usage
 
 1. **Register**: Create a new account with your email and password
 2. **Login**: Sign in to access the dashboard
-3. **Start Challenges**: Begin with Challenge 1 and work your way through
-4. **Submit Flags**: Enter the correct flag to complete each challenge
-5. **Unlock Progress**: Complete challenges sequentially to unlock the next one
+3. **Forgot password**: On the login page, click "Forgot password?", enter your email, then click the link in the email to set a new password
+4. **Start Challenges**: Begin with Challenge 1 and work your way through
+5. **Submit Flags**: Enter the correct flag to complete each challenge
+6. **Unlock Progress**: Complete challenges sequentially to unlock the next one
 
 ## Challenge Types
 

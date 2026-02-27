@@ -4,6 +4,10 @@ import sqlite3
 import os
 from functools import wraps
 import secrets
+from datetime import datetime, timedelta
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib
 from challenges import get_network_challenges
 import db_queries
 
@@ -16,6 +20,37 @@ def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def send_reset_link_email(to_email, reset_link):
+    """Send password reset link. Uses SMTP from env or prints to console."""
+    subject = 'Thaghrah – Reset your password'
+    body = f'''Hello,\n\nYou requested a password reset for your Thaghrah account.\n\nClick the link below to set a new password (link expires in 15 minutes):\n\n{reset_link}\n\nIf you did not request this, please ignore this email.\n\n— Thaghrah\n'''
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = os.environ.get('MAIL_FROM', 'noreply@thaghrah.local')
+    msg['To'] = to_email
+    msg.attach(MIMEText(body, 'plain'))
+    server = os.environ.get('MAIL_SERVER')
+    if not server:
+        print(f'[MAIL] No MAIL_SERVER set. Password reset link for {to_email}:\n{reset_link}')
+        return True
+    try:
+        port = int(os.environ.get('MAIL_PORT', '587'))
+        use_tls = os.environ.get('MAIL_USE_TLS', '1').lower() in ('1', 'true', 'yes')
+        username = os.environ.get('MAIL_USERNAME')
+        password = os.environ.get('MAIL_PASSWORD')
+        with smtplib.SMTP(server, port) as smtp:
+            if use_tls:
+                smtp.starttls()
+            if username and password:
+                smtp.login(username, password)
+            smtp.sendmail(msg['From'], [to_email], msg.as_string())
+        return True
+    except Exception as e:
+        print(f'[MAIL] Failed to send reset email: {e}')
+        return False
+
 
 def init_db():
     """Initialize database from schema.sql file"""
@@ -38,6 +73,21 @@ def init_db():
             conn.commit()
         except sqlite3.OperationalError:
             pass  # Column already exists
+
+    # Migration: password_reset_codes table for forgot-password flow
+    try:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS password_reset_codes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL,
+                code TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
     
     # Insert badges if they don't exist
     if db_queries.get_badge_count(conn) == 0:
@@ -185,7 +235,73 @@ def login():
         else:
             return render_template('login.html', error='Invalid email or password')
     
-    return render_template('login.html')
+    success = request.args.get('reset') == '1'
+    return render_template('login.html', success=success)
+
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = (request.form.get('email') or '').strip().lower()
+        if not email:
+            return render_template('forgot_password.html', error='Please enter your email')
+        conn = get_db()
+        user = db_queries.get_user_by_email(conn, email)
+        conn.close()
+        if not user:
+            return render_template('forgot_password.html', error='No account found with that email')
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.utcnow() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
+        conn = get_db()
+        db_queries.create_reset_code(conn, email, token, expires_at)
+        conn.close()
+        reset_link = url_for('reset_password', token=token, _external=True)
+        send_reset_link_email(email, reset_link)
+        demo_link = reset_link if not os.environ.get('MAIL_SERVER') else None
+        return render_template('forgot_password.html', success=True, email=email, demo_link=demo_link)
+    return render_template('forgot_password.html')
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    token = request.args.get('token')
+    # If user arrived via the email link (token in URL), validate and store in session then redirect to clean URL
+    if token:
+        conn = get_db()
+        row = db_queries.get_valid_reset_by_token(conn, token)
+        conn.close()
+        if row:
+            session['reset_email'] = row['email']
+            session['reset_token'] = token
+            return redirect(url_for('reset_password'))
+        return render_template('reset_password.html', error='This link is invalid or has expired. Please request a new one.')
+    reset_email = session.get('reset_email')
+    reset_token = session.get('reset_token')
+    if not reset_email or not reset_token:
+        return redirect(url_for('forgot_password'))
+    if request.method == 'POST':
+        new_password = request.form.get('new_password') or ''
+        confirm_password = request.form.get('confirm_password') or ''
+        if not new_password or not confirm_password:
+            return render_template('reset_password.html', reset_email=reset_email, error='Both password fields are required')
+        if new_password != confirm_password:
+            return render_template('reset_password.html', reset_email=reset_email, error='Passwords do not match')
+        conn = get_db()
+        row = db_queries.get_valid_reset_by_token(conn, reset_token)
+        if not row or row['email'] != reset_email:
+            conn.close()
+            session.pop('reset_email', None)
+            session.pop('reset_token', None)
+            return render_template('reset_password.html', error='This link has expired. Please request a new one from Forgot password.')
+        db_queries.invalidate_reset_code(conn, reset_email)
+        password_hash = generate_password_hash(new_password)
+        db_queries.update_user_password(conn, reset_email, password_hash)
+        conn.close()
+        session.pop('reset_email', None)
+        session.pop('reset_token', None)
+        return redirect(url_for('login') + '?reset=1')
+    return render_template('reset_password.html', reset_email=reset_email)
+
 
 @app.route('/logout')
 def logout():

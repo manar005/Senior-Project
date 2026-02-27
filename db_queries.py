@@ -108,3 +108,43 @@ def insert_challenges(conn, challenge_data_list):
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', challenge_data_list)
     conn.commit()
+
+
+# --- Password reset ---
+
+def create_reset_code(conn, email, code, expires_at):
+    """Store a password reset code for the given email. Replaces any existing code for this email."""
+    conn.execute('DELETE FROM password_reset_codes WHERE email = ?', (email,))
+    conn.execute(
+        'INSERT INTO password_reset_codes (email, code, expires_at) VALUES (?, ?, ?)',
+        (email, code, expires_at)
+    )
+    conn.commit()
+
+def get_valid_reset_code(conn, email, code):
+    """Return the reset row if the code is valid and not expired, else None."""
+    row = conn.execute(
+        'SELECT * FROM password_reset_codes WHERE email = ? AND code = ? AND datetime(expires_at) > datetime("now")',
+        (email, code)
+    ).fetchone()
+    return row
+
+def get_valid_reset_by_token(conn, token):
+    """Return the reset row (with email) if the token is valid and not expired, else None."""
+    if not token:
+        return None
+    row = conn.execute(
+        'SELECT * FROM password_reset_codes WHERE code = ? AND datetime(expires_at) > datetime("now")',
+        (token,)
+    ).fetchone()
+    return row
+
+def invalidate_reset_code(conn, email):
+    """Remove reset codes for this email (after successful reset)."""
+    conn.execute('DELETE FROM password_reset_codes WHERE email = ?', (email,))
+    conn.commit()
+
+def update_user_password(conn, email, password_hash):
+    """Update password for user with the given email."""
+    conn.execute('UPDATE users SET password_hash = ? WHERE email = ?', (password_hash, email))
+    conn.commit()
