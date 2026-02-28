@@ -16,8 +16,31 @@ def create_user(conn, name, email, password_hash):
     return result.lastrowid
 
 def get_all_challenges(conn):
-    """Get all challenges ordered by order_num"""
-    return conn.execute('SELECT * FROM challenges ORDER BY order_num').fetchall()
+    """Get all challenges ordered by category order_num then challenge order_num"""
+    return conn.execute('''
+        SELECT c.* FROM challenges c
+        JOIN challenge_categories cc ON c.category_id = cc.id
+        ORDER BY cc.order_num, c.order_num
+    ''').fetchall()
+
+def get_all_categories(conn):
+    """Get all categories ordered by order_num"""
+    return conn.execute('SELECT * FROM challenge_categories ORDER BY order_num').fetchall()
+
+def get_category_by_id(conn, category_id):
+    """Get a single category by id"""
+    return conn.execute('SELECT * FROM challenge_categories WHERE id = ?', (category_id,)).fetchone()
+
+def get_challenges_by_category(conn, category_id):
+    """Get challenges in a category ordered by order_num"""
+    return conn.execute(
+        'SELECT * FROM challenges WHERE category_id = ? ORDER BY order_num',
+        (category_id,)
+    ).fetchall()
+
+def get_all_challenges_ordered(conn):
+    """Get all challenges in global order (for unlock logic). Same as get_all_challenges."""
+    return get_all_challenges(conn)
 
 def get_challenge_by_id(conn, challenge_id):
     """Get challenge by ID"""
@@ -92,23 +115,35 @@ def get_all_badges(conn):
     return conn.execute('SELECT * FROM badges').fetchall()
 
 def get_challenge_count(conn):
-    """Get total number of challenges"""
+    """Total number of challenges"""
     result = conn.execute('SELECT COUNT(*) FROM challenges').fetchone()
     return result[0] if result else 0
+
+def get_category_count(conn):
+    """Total number of categories"""
+    result = conn.execute('SELECT COUNT(*) FROM challenge_categories').fetchone()
+    return result[0] if result else 0
+
+def insert_categories(conn, category_data_list):
+    """Insert category rows. Each item: (title, order_num)"""
+    conn.executemany(
+        'INSERT INTO challenge_categories (title, order_num) VALUES (?, ?)',
+        category_data_list
+    )
+    conn.commit()
+
+def insert_challenges(conn, challenge_data_list):
+    """Insert challenges. Each item: (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)"""
+    conn.executemany('''
+        INSERT INTO challenges (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', challenge_data_list)
+    conn.commit()
 
 def get_badge_count(conn):
     """Get total number of badges"""
     result = conn.execute('SELECT COUNT(*) FROM badges').fetchone()
     return result[0] if result else 0
-
-def insert_challenges(conn, challenge_data_list):
-    """Insert multiple challenges using batch insert"""
-    conn.executemany('''
-        INSERT INTO challenges (title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', challenge_data_list)
-    conn.commit()
-
 
 # --- Password reset ---
 

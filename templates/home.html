@@ -3,7 +3,7 @@
 {% block title %}Home - Thaghrah{% endblock %}
 
 {% block content %}
-<div class="home-container">
+<div class="home-container page-home">
     <header class="home-hero">
         <div class="logo-container">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="main-logo">
@@ -29,9 +29,9 @@
     
     <section class="scoring-panel">
         <div class="scoring-header">
-            <h2>Your Achievements</h2>
-            <p class="badge-count">{{ user_badges|length }} of {{ total_badges }} badges earned</p>
-            {% if total_points is defined %}<p class="points-count">{{ total_points }} total points</p>{% endif %}
+            <h2>Your badges</h2>
+            <p class="badge-count">{{ user_badges|length }} of {{ total_badges }} earned</p>
+            {% if total_points is defined %}<p class="points-count">{{ total_points }} points</p>{% endif %}
         </div>
         {% if user_badges %}
         <div class="badges-grid">
@@ -50,10 +50,10 @@
     {% endif %}
     
     <section class="challenge-selection">
-        <h2>Network Security Challenges</h2>
-        <p class="selection-subtitle">Master packet analysis, protocol identification, and network forensics with Wireshark.</p>
+        <h2>Ready to play?</h2>
+        <p class="selection-subtitle">Pick a protocol, crack the traffic, and earn points. Master Wireshark and level up your network security skills.</p>
         <div class="cta-wrap">
-            <a href="{{ url_for('network_challenges') }}" class="btn btn-primary">View challenges</a>
+            <a href="{{ url_for('network_challenges') }}" class="btn btn-primary btn-cta-play">View challenges →</a>
         </div>
     </section>
 </div>

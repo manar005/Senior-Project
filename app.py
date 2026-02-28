@@ -11,6 +11,12 @@ import smtplib
 from challenges import get_network_challenges
 import db_queries
 
+# Protocol names for the 10 categories (displayed on dashboard)
+PROTOCOL_NAMES = [
+    'HTTP', 'TCP', 'DNS', 'FTP', 'ICMP', 'SMTP',
+    'TCP Handshake Count', 'TCP Fragmentation', 'TLS', 'Forensics'
+]
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
@@ -88,7 +94,46 @@ def init_db():
         conn.commit()
     except sqlite3.OperationalError:
         pass
-    
+
+    # Migration: challenge_categories and category_id on challenges
+    try:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS challenge_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                order_num INTEGER NOT NULL
+            )
+        ''')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute('ALTER TABLE challenges ADD COLUMN category_id INTEGER')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+    if db_queries.get_category_count(conn) == 0:
+        category_data = [(PROTOCOL_NAMES[idx], idx + 1) for idx in range(len(PROTOCOL_NAMES))]
+        db_queries.insert_categories(conn, category_data)
+        conn.commit()
+    else:
+        # Migration: set category titles to protocol names for existing DBs
+        for idx, name in enumerate(PROTOCOL_NAMES, start=1):
+            try:
+                conn.execute('UPDATE challenge_categories SET title = ? WHERE order_num = ?', (name, idx))
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass
+    try:
+        conn.execute('''
+            UPDATE challenges SET category_id = (
+                SELECT id FROM challenge_categories WHERE challenge_categories.order_num = challenges.order_num
+            ) WHERE category_id IS NULL
+        ''')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+
     # Insert badges if they don't exist
     if db_queries.get_badge_count(conn) == 0:
         badges_data = [
@@ -108,10 +153,12 @@ def init_db():
     
     # Insert challenges if they don't exist
     if db_queries.get_challenge_count(conn) == 0:
-        challenges = get_network_challenges()
+        network_challenges = get_network_challenges()
+        categories = db_queries.get_all_categories(conn)
+        by_order = {c['order_num']: c['id'] for c in categories}
         challenge_data = [
-            (c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), idx, c.get('points', 100))
-            for idx, c in enumerate(challenges, start=1)
+            (by_order[c['order_num']], c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), 1, c.get('points', 100))
+            for c in network_challenges
         ]
         db_queries.insert_challenges(conn, challenge_data)
     
@@ -333,18 +380,64 @@ def home():
 @login_required
 def network_challenges():
     conn = get_db()
-    challenges = db_queries.get_all_challenges(conn)
+    categories = db_queries.get_all_categories(conn)
+    all_challenges = db_queries.get_all_challenges_ordered(conn)
     completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
-    
-    # Determine which challenges are unlocked
-    unlocked = get_unlocked_challenges(challenges, completed_ids)
+    unlocked = get_unlocked_challenges(all_challenges, completed_ids)
+    categories_with_challenges = []
+    for cat in categories:
+        challenges_in_cat = db_queries.get_challenges_by_category(conn, cat['id'])
+        categories_with_challenges.append({'category': cat, 'challenges': challenges_in_cat})
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
     total_points = db_queries.get_user_total_points(conn, session['user_id'])
     conn.close()
-    
-    return render_template('dashboard.html', challenges=challenges, completed_ids=completed_ids, unlocked=unlocked, category='Network Security', user_badges=user_badges, total_badges=total_badges, total_points=total_points)
+    return render_template(
+        'dashboard.html',
+        categories_with_challenges=categories_with_challenges,
+        all_challenges=all_challenges,
+        completed_ids=completed_ids,
+        unlocked=unlocked,
+        category='Network Security',
+        user_badges=user_badges,
+        total_badges=total_badges,
+        total_points=total_points
+    )
+
+
+@app.route('/challenges/network/category/<int:category_id>')
+@login_required
+def category_challenges(category_id):
+    """Show challenges for one protocol/category."""
+    conn = get_db()
+    cat = db_queries.get_category_by_id(conn, category_id)
+    if not cat:
+        conn.close()
+        return redirect(url_for('network_challenges'))
+    all_challenges = db_queries.get_all_challenges_ordered(conn)
+    completed = db_queries.get_user_progress(conn, session['user_id'])
+    completed_ids = [row[0] for row in completed]
+    unlocked = get_unlocked_challenges(all_challenges, completed_ids)
+    challenges = db_queries.get_challenges_by_category(conn, category_id)
+    user_badges = db_queries.get_user_badges(conn, session['user_id'])
+    total_badges = db_queries.get_total_badges_count(conn)
+    total_points = db_queries.get_user_total_points(conn, session['user_id'])
+    conn.close()
+    completed_in_category = sum(1 for c in challenges if c['id'] in completed_ids)
+    return render_template(
+        'category_challenges.html',
+        category=cat,
+        challenges=challenges,
+        completed_ids=completed_ids,
+        completed_in_category=completed_in_category,
+        unlocked=unlocked,
+        all_challenges=all_challenges,
+        user_badges=user_badges,
+        total_badges=total_badges,
+        total_points=total_points
+    )
+
 
 @app.route('/challenge/<int:challenge_id>')
 @login_required
@@ -364,7 +457,12 @@ def challenge(challenge_id):
         conn.close()
         return redirect(url_for('network_challenges'))
     conn.close()
-    return render_template('challenge.html', challenge=challenge, is_completed=challenge_id in completed_ids, category_url=url_for('network_challenges'))
+    return render_template(
+        'challenge.html',
+        challenge=challenge,
+        is_completed=challenge_id in completed_ids,
+        category_url=url_for('category_challenges', category_id=challenge['category_id'])
+    )
 
 @app.route('/submit_flag', methods=['POST'])
 @login_required

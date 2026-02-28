@@ -3,19 +3,19 @@
 {% block title %}Dashboard - Thaghrah{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container page-dashboard">
     <header class="dashboard-header">
         <a href="{{ url_for('home') }}" class="back-link">← Back to home</a>
         <div class="dashboard-logo-container">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="dashboard-logo">
         </div>
         <h2>{% if category %}{{ category }}{% else %}Challenges{% endif %}</h2>
-        <p>Complete challenges in order to unlock the next and track your progress.</p>
+        <p>Pick a protocol below and complete challenges to unlock the next. Track your progress and earn points.</p>
     </header>
     
     <section class="dashboard-stats">
         <div class="dash-stat">
-            <span class="dash-stat-value">{{ completed_ids|length }}<span class="dash-stat-suffix">/{{ challenges|length }}</span></span>
+            <span class="dash-stat-value">{{ completed_ids|length }}<span class="dash-stat-suffix">/{{ all_challenges|length }}</span></span>
             <span class="dash-stat-label">Challenges</span>
         </div>
         {% if total_points is defined %}
@@ -24,61 +24,27 @@
             <span class="dash-stat-label">Points</span>
         </div>
         {% endif %}
-        <div class="dash-stat">
-            <span class="dash-stat-value">{{ user_badges|length }}<span class="dash-stat-suffix">/{{ total_badges }}</span></span>
-            <span class="dash-stat-label">Badges</span>
-        </div>
     </section>
     
     <div class="progress-summary">
         <div class="progress-card">
             <h3>Progress</h3>
-            <p class="progress-text">{{ completed_ids|length }} of {{ challenges|length }} completed</p>
+            <p class="progress-text">{{ completed_ids|length }} of {{ all_challenges|length }} completed</p>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ (completed_ids|length / challenges|length * 100) if challenges|length > 0 else 0 }}%"></div>
+                <div class="progress-fill" style="width: {{ (completed_ids|length / all_challenges|length * 100) if all_challenges|length > 0 else 0 }}%"></div>
             </div>
         </div>
     </div>
     
-    {% if user_badges is defined and user_badges %}
-    <section class="scoring-panel">
-        <div class="scoring-header">
-            <h3>Your badges</h3>
-            <p class="badge-count">{{ user_badges|length }} of {{ total_badges }} earned</p>
-            {% if total_points is defined %}<p class="points-count">{{ total_points }} points</p>{% endif %}
-        </div>
-        <div class="badges-grid">
-            {% for badge in user_badges %}
-            <div class="badge-card earned">
-                <div class="badge-icon">{{ badge.icon }}</div>
-                <div class="badge-name">{{ badge.name }}</div>
-                <div class="badge-description">{{ badge.description }}</div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    
     <section class="challenges-section">
-        <h3 class="section-title">Challenges</h3>
-        <div class="challenges-grid">
-            {% for challenge in challenges %}
-            <div class="challenge-card {% if challenge.id in completed_ids %}completed{% elif challenge.id in unlocked %}unlocked{% else %}locked{% endif %} {% if loop.last %}last-challenge{% endif %}">
-                <div class="challenge-header">
-                    <h3>{{ challenge.title }}</h3>
-                    <span class="challenge-badge">
-                        {% if challenge.id in completed_ids %}✓ Completed{% elif challenge.id in unlocked %}Start{% else %}Locked{% endif %}
-                    </span>
-                </div>
-                <p class="challenge-description">{{ challenge.description[:100] }}{% if challenge.description|length > 100 %}…{% endif %}</p>
-                <div class="challenge-footer">
-                    {% if challenge.id in unlocked %}
-                    <a href="{{ url_for('challenge', challenge_id=challenge.id) }}" class="btn btn-primary">Start challenge</a>
-                    {% else %}
-                    <button class="btn btn-disabled" disabled>Complete previous</button>
-                    {% endif %}
-                </div>
-            </div>
+        <h3 class="section-title">Challenges by protocol</h3>
+        <p class="section-subtitle">Click a protocol to see its challenges and start playing.</p>
+        <div class="protocol-grid">
+            {% for item in categories_with_challenges %}
+            <a href="{{ url_for('category_challenges', category_id=item.category.id) }}" class="protocol-card">
+                <span class="protocol-name">{{ item.category.title }}</span>
+                <span class="protocol-count">{{ item.challenges|length }} challenge{{ 's' if item.challenges|length != 1 else '' }}</span>
+            </a>
             {% endfor %}
         </div>
     </section>

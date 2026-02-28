@@ -10,9 +10,17 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Challenge categories (1-10: e.g. Wireshark Basics, TCP Handshake, ...)
+CREATE TABLE IF NOT EXISTS challenge_categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    order_num INTEGER NOT NULL
+);
+
 -- Challenges table
 CREATE TABLE IF NOT EXISTS challenges (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     hint TEXT NOT NULL,
@@ -21,7 +29,8 @@ CREATE TABLE IF NOT EXISTS challenges (
     challenge_type TEXT NOT NULL,
     challenge_data TEXT,
     order_num INTEGER NOT NULL,
-    points INTEGER NOT NULL DEFAULT 100
+    points INTEGER NOT NULL DEFAULT 100,
+    FOREIGN KEY (category_id) REFERENCES challenge_categories(id)
 );
 
 -- User progress table
