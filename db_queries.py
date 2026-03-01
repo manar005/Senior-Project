@@ -38,6 +38,18 @@ def get_challenges_by_category(conn, category_id):
         (category_id,)
     ).fetchall()
 
+def get_challenges_by_category_ids(conn, category_ids):
+    """Get challenges in any of the given categories, ordered by category order_num then challenge order_num"""
+    if not category_ids:
+        return []
+    placeholders = ','.join('?' * len(category_ids))
+    return conn.execute('''
+        SELECT c.* FROM challenges c
+        JOIN challenge_categories cc ON c.category_id = cc.id
+        WHERE c.category_id IN ({})
+        ORDER BY cc.order_num, c.order_num
+    '''.format(placeholders), category_ids).fetchall()
+
 def get_all_challenges_ordered(conn):
     """Get all challenges in global order (for unlock logic). Same as get_all_challenges."""
     return get_all_challenges(conn)

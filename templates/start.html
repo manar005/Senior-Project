@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Thaghrah{% endblock %}
+
+{% block content %}
+<div class="start-page-galaxy" id="hero-section">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="start-page-inner auth-container-over-galaxy">
+        <div class="hero-logo-zone start-logo-wrap" id="hero-logo-zone">
+            <div class="hero-logo-glow" aria-hidden="true"></div>
+            <div class="hero-logo-float">
+                <div class="start-logo-3d hero-logo-inner" id="logo-3d-container">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="start-logo-img logo-3d-fallback">
+                    <noscript><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="start-logo-img"></noscript>
+                </div>
+            </div>
+        </div>
+        <div class="start-content">
+            <h1 class="start-title">THAGHRAH</h1>
+            <p class="start-tagline">Educational Cybersecurity Learning Platform</p>
+            <div class="start-intro">
+                <p>Learn network security with hands-on challenges: analyze packet captures, trace protocols, and find flags like real defenders.</p>
+                <p>Challenges cover multiple network protocols. Use hints when stuck and earn points and badges.</p>
+            </div>
+            <div class="start-notice">
+                <strong>BEFORE YOU START:</strong> Install <strong>Wireshark</strong> to open the pcap files. <a href="https://www.wireshark.org/download.html" target="_blank" rel="noopener">Download here</a>.
+            </div>
+            <div class="start-actions">
+                <a href="{{ url_for('register') }}" class="btn btn-primary start-btn start-btn-signup">Sign up</a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary start-btn start-btn-signin">Sign in</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/logo-3d.js') }}"></script>
+<script>
+(function() {
+    var container = document.getElementById('logo-3d-container');
+    var logoUrl = '{{ url_for("static", filename="images/logo.png") }}';
+    if (container && typeof initLogo3D === 'function') {
+        initLogo3D(container, logoUrl);
+    }
+    // Parallax on mouse move (move the whole logo zone slightly)
+    var zone = document.getElementById('hero-logo-zone');
+    var floatEl = document.querySelector('.hero-logo-float');
+    if (zone && floatEl) {
+        zone.addEventListener('mousemove', function(e) {
+            var rect = zone.getBoundingClientRect();
+            var x = (e.clientX - rect.left) / rect.width - 0.5;
+            var y = (e.clientY - rect.top) / rect.height - 0.5;
+            var moveX = x * 14;
+            var moveY = y * -12;
+            floatEl.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px) translateZ(0)';
+        });
+        zone.addEventListener('mouseleave', function() {
+            floatEl.style.transform = '';
+        });
+    }
+})();
+    // Scroll hero (logo + text) into the center of the viewport on load
+    (function() {
+        var hero = document.getElementById('hero-section');
+        if (hero) {
+            function scrollHeroToCenter() {
+                hero.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            }
+            if (document.readyState === 'complete') {
+                setTimeout(scrollHeroToCenter, 100);
+            } else {
+                window.addEventListener('load', function() { setTimeout(scrollHeroToCenter, 100); });
+            }
+        }
+    })();
+</script>
+{% endblock %}

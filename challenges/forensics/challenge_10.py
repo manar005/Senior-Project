@@ -1,5 +1,6 @@
 """
 Challenge 10: Network Forensics - Data Exfiltration
+Category: Forensics
 """
 challenge = {
     'title': 'Network Forensics - Data Exfiltration',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Learn advanced network forensics and DNS tunneling detection',
     'challenge_type': 'network',
     'order_num': 10,
-    'points': 100
+    'points': 100,
+    'category_slug': 'forensics',
+    'order_in_category': 1,
 }

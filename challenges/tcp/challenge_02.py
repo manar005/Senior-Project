@@ -1,5 +1,6 @@
 """
 Challenge 2: TCP Handshake Analysis
+Category: TCP
 """
 challenge = {
     'title': 'TCP Handshake Analysis',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Understand TCP handshake process and port identification',
     'challenge_type': 'network',
     'order_num': 2,
-    'points': 100
+    'points': 100,
+    'category_slug': 'tcp',
+    'order_in_category': 1,
 }

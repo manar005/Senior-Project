@@ -1,5 +1,6 @@
 """
 Challenge 8: TCP Fragmentation
+Category: TCP
 """
 challenge = {
     'title': 'TCP Fragmentation',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Learn how data can be split across TCP segments and how to reassemble it',
     'challenge_type': 'network',
     'order_num': 8,
-    'points': 100
+    'points': 100,
+    'category_slug': 'tcp',
+    'order_in_category': 3,
 }

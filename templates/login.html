@@ -3,32 +3,38 @@
 {% block title %}Login - Thaghrah{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Sign in</h2>
-        <p class="subtitle">Welcome back. Sign in to continue your journey.</p>
-        
-        {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
-        {% endif %}
-        {% if success %}
-        <div class="alert alert-success">Your password has been reset. You can sign in with your new password.</div>
-        {% endif %}
-        
-        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required autofocus placeholder="you@example.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="••••••••">
-            </div>
-            <button type="submit" class="btn btn-primary">Sign in</button>
-        </form>
-        
-        <p class="auth-link">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
-        <p class="auth-link"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
+<div class="login-page-galaxy">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container auth-container-over-galaxy">
+        <div class="auth-card">
+            <h2>Sign in</h2>
+            <p class="subtitle">Welcome back. Sign in to continue your journey.</p>
+            
+            {% if error %}
+            <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+            <div class="alert alert-success">Your password has been reset. You can sign in with your new password.</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required autofocus placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary">Sign in</button>
+            </form>
+            
+            <p class="auth-link">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+            <p class="auth-link"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
+        </div>
     </div>
 </div>
 {% endblock %}

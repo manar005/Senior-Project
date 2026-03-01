@@ -11,11 +11,15 @@ import smtplib
 from challenges import get_network_challenges
 import db_queries
 
-# Protocol names for the 10 categories (displayed on dashboard)
+# Protocol/category names (8 categories; TCP has 3 challenges under it)
 PROTOCOL_NAMES = [
-    'HTTP', 'TCP', 'DNS', 'FTP', 'ICMP', 'SMTP',
-    'TCP Handshake Count', 'TCP Fragmentation', 'TLS', 'Forensics'
+    'HTTP', 'TCP', 'DNS', 'FTP', 'ICMP', 'SMTP', 'TLS', 'Forensics'
 ]
+# Map challenge category_slug to category order_num (1-based)
+CATEGORY_SLUG_TO_ORDER = {
+    'http': 1, 'tcp': 2, 'dns': 3, 'ftp': 4,
+    'icmp': 5, 'smtp': 6, 'tls': 7, 'forensics': 8,
+}
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -117,13 +121,75 @@ def init_db():
         db_queries.insert_categories(conn, category_data)
         conn.commit()
     else:
-        # Migration: set category titles to protocol names for existing DBs
-        for idx, name in enumerate(PROTOCOL_NAMES, start=1):
-            try:
-                conn.execute('UPDATE challenge_categories SET title = ? WHERE order_num = ?', (name, idx))
+        # Only overwrite category titles when we have exactly 8 categories (new structure).
+        # If we have 10 categories (TCP, TCP Handshake Count, TCP Fragmentation, etc.), leave
+        # them so the view can merge TCP subcategories and show 3 TCP challenges.
+        if db_queries.get_category_count(conn) == 8:
+            for idx, name in enumerate(PROTOCOL_NAMES, start=1):
+                try:
+                    conn.execute('UPDATE challenge_categories SET title = ? WHERE order_num = ?', (name, idx))
+                    conn.commit()
+                except sqlite3.OperationalError:
+                    pass
+        # Migration: move challenges from "TCP Handshake Count" and "TCP Fragmentation" into "TCP"
+        # so all 3 TCP challenges appear under one category (works for both 8 and 10 category DBs).
+        try:
+            categories = db_queries.get_all_categories(conn)
+            tcp_primary = next((c for c in categories if c['title'] == 'TCP'), None)
+            tcp_extra = [c for c in categories if c['title'] in ('TCP Handshake Count', 'TCP Fragmentation')]
+            if tcp_primary and tcp_extra:
+                tcp_id = tcp_primary['id']
+                extra_ids = [c['id'] for c in tcp_extra]
+                # Assign order_num 2 and 3 within TCP for the moved challenges (keep existing TCP challenge as 1)
+                cur = conn.execute(
+                    'SELECT id, order_num FROM challenges WHERE category_id IN ({}) ORDER BY category_id, order_num'.format(
+                        ','.join('?' * len(extra_ids))
+                    ),
+                    extra_ids
+                )
+                rows = cur.fetchall()
+                for i, row in enumerate(rows):
+                    conn.execute(
+                        'UPDATE challenges SET category_id = ?, order_num = ? WHERE id = ?',
+                        (tcp_id, i + 2, row['id'])  # order_num 2, 3 within TCP
+                    )
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass
+                # Remove the now-empty TCP subcategory rows so we have 8 categories
+                for cid in extra_ids:
+                    conn.execute('DELETE FROM challenge_categories WHERE id = ?', (cid,))
+                conn.commit()
+                # Renumber so remaining categories have order_num 1-8 (e.g. 9->7, 10->8)
+                conn.execute('UPDATE challenge_categories SET order_num = 7 WHERE order_num = 9')
+                conn.execute('UPDATE challenge_categories SET order_num = 8 WHERE order_num = 10')
+                conn.commit()
+                # Re-point TLS and Forensics challenges: they had category_id 7 and 8 (now deleted).
+                # After delete, TLS and Forensics have ids 9 and 10; fix challenges 9 and 10 to point to them.
+                conn.execute('UPDATE challenges SET category_id = 9 WHERE id = 9')
+                conn.execute('UPDATE challenges SET category_id = 10 WHERE id = 10')
+                conn.commit()
+            elif tcp_primary:
+                # Fallback: if titles were already overwritten, ensure challenge ids 2, 7, 8 are under TCP
+                tcp_id = tcp_primary['id']
+                for challenge_id, order_in_tcp in [(2, 1), (7, 2), (8, 3)]:
+                    conn.execute(
+                        'UPDATE challenges SET category_id = ?, order_num = ? WHERE id = ?',
+                        (tcp_id, order_in_tcp, challenge_id)
+                    )
+                conn.commit()
+        except (sqlite3.OperationalError, StopIteration):
+            pass
+        # Ensure TLS and Forensics challenges (ids 9 and 10) point to the right categories (fix orphaned refs)
+        try:
+            categories = db_queries.get_all_categories(conn)
+            tls_cat = next((c for c in categories if c['title'] == 'TLS'), None)
+            forensics_cat = next((c for c in categories if c['title'] == 'Forensics'), None)
+            if tls_cat:
+                conn.execute('UPDATE challenges SET category_id = ? WHERE id = 9', (tls_cat['id'],))
+            if forensics_cat:
+                conn.execute('UPDATE challenges SET category_id = ? WHERE id = 10', (forensics_cat['id'],))
+            conn.commit()
+        except (sqlite3.OperationalError, StopIteration):
+            pass
     try:
         conn.execute('''
             UPDATE challenges SET category_id = (
@@ -156,10 +222,16 @@ def init_db():
         network_challenges = get_network_challenges()
         categories = db_queries.get_all_categories(conn)
         by_order = {c['order_num']: c['id'] for c in categories}
-        challenge_data = [
-            (by_order[c['order_num']], c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'], c['challenge_type'], c.get('challenge_data'), 1, c.get('points', 100))
-            for c in network_challenges
-        ]
+        challenge_data = []
+        for c in network_challenges:
+            cat_order = CATEGORY_SLUG_TO_ORDER.get(c.get('category_slug'), 1)
+            category_id = by_order.get(cat_order, list(by_order.values())[0])
+            order_in_cat = c.get('order_in_category', 1)
+            challenge_data.append((
+                category_id, c['title'], c['description'], c['hint'], c['flag'],
+                c['expected_outcome'], c['challenge_type'], c.get('challenge_data'),
+                order_in_cat, c.get('points', 100)
+            ))
         db_queries.insert_challenges(conn, challenge_data)
     
     conn.close()
@@ -227,13 +299,13 @@ def login_required(f):
 def index():
     if 'user_id' in session:
         return redirect(url_for('home'))
-    return redirect(url_for('login'))
+    return render_template('start.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
+        name = (request.form.get('name') or '').strip()
+        email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         
@@ -244,6 +316,10 @@ def register():
             return render_template('register.html', error='Passwords do not match')
         
         conn = get_db()
+        existing = db_queries.get_user_by_email(conn, email)
+        if existing:
+            conn.close()
+            return render_template('register.html', error='This email is already registered. Please sign in or use a different email.')
         
         try:
             password_hash = generate_password_hash(password)
@@ -256,14 +332,14 @@ def register():
             return redirect(url_for('home'))
         except sqlite3.IntegrityError:
             conn.close()
-            return render_template('register.html', error='Email already exists')
+            return render_template('register.html', error='This email is already registered. Please sign in or use a different email.')
     
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password')
         
         if not email or not password:
@@ -353,7 +429,7 @@ def reset_password():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 @app.route('/api/me')
 @login_required
@@ -385,10 +461,20 @@ def network_challenges():
     completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
     unlocked = get_unlocked_challenges(all_challenges, completed_ids)
+    # Build exactly 8 protocol cards (merge TCP subcategories for display)
     categories_with_challenges = []
-    for cat in categories:
-        challenges_in_cat = db_queries.get_challenges_by_category(conn, cat['id'])
-        categories_with_challenges.append({'category': cat, 'challenges': challenges_in_cat})
+    for protocol_name in PROTOCOL_NAMES:
+        # Primary category: the one whose title exactly matches (e.g. "TCP", "HTTP")
+        primary = next((c for c in categories if c['title'] == protocol_name), None)
+        if not primary:
+            continue
+        # For TCP, include challenges from "TCP", "TCP Handshake Count", "TCP Fragmentation"
+        if protocol_name == 'TCP':
+            tcp_cat_ids = [c['id'] for c in categories if c['title'] == 'TCP' or c['title'].startswith('TCP ')]
+            challenges_in_cat = db_queries.get_challenges_by_category_ids(conn, tcp_cat_ids)
+        else:
+            challenges_in_cat = db_queries.get_challenges_by_category(conn, primary['id'])
+        categories_with_challenges.append({'category': primary, 'challenges': challenges_in_cat})
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
     total_points = db_queries.get_user_total_points(conn, session['user_id'])
@@ -409,7 +495,7 @@ def network_challenges():
 @app.route('/challenges/network/category/<int:category_id>')
 @login_required
 def category_challenges(category_id):
-    """Show challenges for one protocol/category."""
+    """Show challenges for one protocol/category. TCP merges all TCP subcategories."""
     conn = get_db()
     cat = db_queries.get_category_by_id(conn, category_id)
     if not cat:
@@ -419,7 +505,12 @@ def category_challenges(category_id):
     completed = db_queries.get_user_progress(conn, session['user_id'])
     completed_ids = [row[0] for row in completed]
     unlocked = get_unlocked_challenges(all_challenges, completed_ids)
-    challenges = db_queries.get_challenges_by_category(conn, category_id)
+    if cat['title'] == 'TCP':
+        categories = db_queries.get_all_categories(conn)
+        tcp_cat_ids = [c['id'] for c in categories if c['title'] == 'TCP' or c['title'].startswith('TCP ')]
+        challenges = db_queries.get_challenges_by_category_ids(conn, tcp_cat_ids)
+    else:
+        challenges = db_queries.get_challenges_by_category(conn, category_id)
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
     total_points = db_queries.get_user_total_points(conn, session['user_id'])
@@ -467,13 +558,17 @@ def challenge(challenge_id):
 @app.route('/submit_flag', methods=['POST'])
 @login_required
 def submit_flag():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     challenge_id = data.get('challenge_id')
     flag = data.get('flag')
     used_hint = bool(data.get('used_hint', False))
     
-    if not challenge_id or not flag:
+    if challenge_id is None or flag is None:
         return jsonify({'success': False, 'message': 'Missing challenge ID or flag'})
+    # Coerce flag to string and strip (in case of number or extra whitespace)
+    flag = str(flag).strip()
+    if not flag:
+        return jsonify({'success': False, 'message': 'Please enter a flag'})
     try:
         challenge_id = int(challenge_id)
         if challenge_id < 1:
@@ -493,11 +588,13 @@ def submit_flag():
             return ''
         if isinstance(s, bytes):
             s = s.decode('utf-8', errors='ignore')
-        s = str(s).strip()
+        s = str(s).strip().replace('\r', '').replace('\n', '')
         for c in '\ufeff\u200b\u200c\u200d\u200e\u200f':
             s = s.replace(c, '')
         return s.upper()
-    stored_flag = challenge['flag']  # Row may return str or bytes depending on SQLite/driver
+    stored_flag = challenge['flag']
+    if stored_flag is None:
+        stored_flag = ''
     if normalize_flag(flag) == normalize_flag(stored_flag):
         existing = db_queries.check_challenge_completed(conn, session['user_id'], challenge_id)
         new_badges = []

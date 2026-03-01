@@ -1,5 +1,6 @@
 """
 Challenge 9: HTTPS/TLS Analysis (content from former challenge 6)
+Category: TLS
 """
 challenge = {
     'title': 'HTTPS/TLS Analysis',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Understand TLS/SSL handshake and version identification',
     'challenge_type': 'network',
     'order_num': 9,
-    'points': 100
+    'points': 100,
+    'category_slug': 'tls',
+    'order_in_category': 1,
 }

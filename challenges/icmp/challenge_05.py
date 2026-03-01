@@ -1,5 +1,6 @@
 """
 Challenge 5: ICMP Packet Analysis (content from former challenge 6)
+Category: ICMP
 """
 challenge = {
     'title': 'ICMP Packet Analysis',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Learn ICMP protocol and packet types',
     'challenge_type': 'network',
     'order_num': 5,
-    'points': 100
+    'points': 100,
+    'category_slug': 'icmp',
+    'order_in_category': 1,
 }

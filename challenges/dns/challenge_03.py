@@ -1,5 +1,6 @@
 """
 Challenge 3: DNS Query Investigation
+Category: DNS
 """
 challenge = {
     'title': 'DNS Query Investigation',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Learn DNS protocol and how to analyze DNS queries',
     'challenge_type': 'network',
     'order_num': 3,
-    'points': 100
+    'points': 100,
+    'category_slug': 'dns',
+    'order_in_category': 1,
 }

@@ -1,5 +1,6 @@
 """
 Challenge 7: TCP Handshake Count
+Category: TCP
 """
 challenge = {
     'title': 'TCP Handshake Count',
@@ -9,5 +10,7 @@ challenge = {
     'expected_outcome': 'Learn to recognize TCP three-way handshakes in packet captures',
     'challenge_type': 'network',
     'order_num': 7,
-    'points': 100
+    'points': 100,
+    'category_slug': 'tcp',
+    'order_in_category': 2,
 }

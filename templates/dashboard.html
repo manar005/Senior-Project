@@ -3,50 +3,58 @@
 {% block title %}Dashboard - Thaghrah{% endblock %}
 
 {% block content %}
-<div class="container page-dashboard">
-    <header class="dashboard-header">
-        <a href="{{ url_for('home') }}" class="back-link">← Back to home</a>
-        <div class="dashboard-logo-container">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="dashboard-logo">
-        </div>
-        <h2>{% if category %}{{ category }}{% else %}Challenges{% endif %}</h2>
-        <p>Pick a protocol below and complete challenges to unlock the next. Track your progress and earn points.</p>
-    </header>
-    
-    <section class="dashboard-stats">
-        <div class="dash-stat">
-            <span class="dash-stat-value">{{ completed_ids|length }}<span class="dash-stat-suffix">/{{ all_challenges|length }}</span></span>
-            <span class="dash-stat-label">Challenges</span>
-        </div>
-        {% if total_points is defined %}
-        <div class="dash-stat">
-            <span class="dash-stat-value">{{ total_points }}</span>
-            <span class="dash-stat-label">Points</span>
-        </div>
-        {% endif %}
-    </section>
-    
-    <div class="progress-summary">
-        <div class="progress-card">
-            <h3>Progress</h3>
-            <p class="progress-text">{{ completed_ids|length }} of {{ all_challenges|length }} completed</p>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ (completed_ids|length / all_challenges|length * 100) if all_challenges|length > 0 else 0 }}%"></div>
+<div class="login-page-galaxy login-page-galaxy--home">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container-over-galaxy">
+        <div class="container page-dashboard">
+            <header class="dashboard-header">
+                <a href="{{ url_for('home') }}" class="back-link">← Back to home</a>
+                <div class="dashboard-logo-container">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="dashboard-logo">
+                </div>
+                <h2>{% if category %}{{ category }}{% else %}Challenges{% endif %}</h2>
+                <p>Pick a protocol below and complete challenges to unlock the next. Track your progress and earn points.</p>
+            </header>
+            
+            <section class="dashboard-stats">
+                <div class="dash-stat">
+                    <span class="dash-stat-value">{{ completed_ids|length }}<span class="dash-stat-suffix">/{{ all_challenges|length }}</span></span>
+                    <span class="dash-stat-label">Challenges</span>
+                </div>
+                {% if total_points is defined %}
+                <div class="dash-stat">
+                    <span class="dash-stat-value">{{ total_points }}</span>
+                    <span class="dash-stat-label">Points</span>
+                </div>
+                {% endif %}
+            </section>
+            
+            <div class="progress-summary">
+                <div class="progress-card">
+                    <h3>Progress</h3>
+                    <p class="progress-text">{{ completed_ids|length }} of {{ all_challenges|length }} completed</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ (completed_ids|length / all_challenges|length * 100) if all_challenges|length > 0 else 0 }}%"></div>
+                    </div>
+                </div>
             </div>
+            
+            <section class="challenges-section">
+                <h3 class="section-title">Challenges by protocol</h3>
+                <p class="section-subtitle">Click a protocol to see its challenges and start playing.</p>
+                <div class="protocol-grid">
+                    {% for item in categories_with_challenges %}
+                    <a href="{{ url_for('category_challenges', category_id=item.category.id) }}" class="protocol-card">
+                        <span class="protocol-name">{{ item.category.title }}</span>
+                        <span class="protocol-count">{{ item.challenges|length }} challenge{{ 's' if item.challenges|length != 1 else '' }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
         </div>
     </div>
-    
-    <section class="challenges-section">
-        <h3 class="section-title">Challenges by protocol</h3>
-        <p class="section-subtitle">Click a protocol to see its challenges and start playing.</p>
-        <div class="protocol-grid">
-            {% for item in categories_with_challenges %}
-            <a href="{{ url_for('category_challenges', category_id=item.category.id) }}" class="protocol-card">
-                <span class="protocol-name">{{ item.category.title }}</span>
-                <span class="protocol-count">{{ item.challenges|length }} challenge{{ 's' if item.challenges|length != 1 else '' }}</span>
-            </a>
-            {% endfor %}
-        </div>
-    </section>
 </div>
 {% endblock %}

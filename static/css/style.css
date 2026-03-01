@@ -276,6 +276,431 @@ body {
 }
 
 /* Auth Pages */
+
+/* Login page galaxy + stars background */
+.login-page-galaxy {
+    position: relative;
+    min-height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 20px;
+    overflow: hidden;
+    background: #050308;
+    isolation: isolate;
+}
+
+.login-page-galaxy--home {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 2rem 20px 4rem;
+}
+
+.login-page-galaxy--home .auth-container-over-galaxy {
+    width: 100%;
+}
+
+.galaxy-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 120% 80% at 50% 50%, rgba(45, 20, 80, 0.5) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 120% at 70% 80%, rgba(30, 15, 60, 0.4) 0%, transparent 45%),
+        radial-gradient(ellipse 100% 60% at 20% 20%, rgba(20, 30, 70, 0.35) 0%, transparent 45%),
+        radial-gradient(ellipse 60% 100% at 90% 30%, rgba(15, 25, 55, 0.3) 0%, transparent 50%),
+        linear-gradient(180deg, #0a0612 0%, #050308 50%, #080510 100%);
+    background-attachment: fixed;
+    pointer-events: none;
+}
+
+.stars-layer {
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    left: -20%;
+    top: -20%;
+    opacity: 0.9;
+    will-change: transform;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.stars-layer-1 {
+    background-image:
+        radial-gradient(4px 4px at 10% 15%, rgba(255,255,255,0.95) 0%, transparent 100%),
+        radial-gradient(2px 2px at 25% 8%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(3px 3px at 42% 22%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(5px 5px at 58% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(2px 2px at 75% 28%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(3px 3px at 88% 18%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(2px 2px at 5% 45%, rgba(255,255,255,0.75) 0%, transparent 100%),
+        radial-gradient(4px 4px at 18% 55%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(3px 3px at 35% 48%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(2px 2px at 52% 62%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(5px 5px at 68% 52%, rgba(255,255,255,0.75) 0%, transparent 100%),
+        radial-gradient(2px 2px at 82% 65%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(4px 4px at 95% 42%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(3px 3px at 12% 78%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(2px 2px at 48% 85%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(4px 4px at 72% 92%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(3px 3px at 30% 92%, rgba(255,255,255,0.75) 0%, transparent 100%);
+    background-size: 100% 100%;
+    animation: twinkle 4s ease-in-out infinite, stars-drift-1 35s ease-in-out infinite;
+    transform-origin: 50% 50%;
+}
+
+.stars-layer-2 {
+    background-image:
+        radial-gradient(5px 5px at 15% 25%, rgba(220,230,255,0.7) 0%, transparent 100%),
+        radial-gradient(2px 2px at 38% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(4px 4px at 62% 45%, rgba(240,245,255,0.65) 0%, transparent 100%),
+        radial-gradient(3px 3px at 85% 55%, rgba(255,255,255,0.55) 0%, transparent 100%),
+        radial-gradient(2px 2px at 22% 68%, rgba(230,235,255,0.6) 0%, transparent 100%),
+        radial-gradient(5px 5px at 55% 75%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(3px 3px at 78% 82%, rgba(240,248,255,0.55) 0%, transparent 100%),
+        radial-gradient(4px 4px at 8% 88%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(2px 2px at 45% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(3px 3px at 92% 72%, rgba(220,230,255,0.55) 0%, transparent 100%);
+    background-size: 100% 100%;
+    animation: twinkle 5s ease-in-out infinite 0.8s, stars-drift-2 50s ease-in-out infinite;
+    transform-origin: 50% 50%;
+}
+
+.stars-layer-3 {
+    background-image:
+        radial-gradient(2px 2px at 7% 32%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(4px 4px at 28% 42%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(3px 3px at 50% 8%, rgba(255,255,255,0.55) 0%, transparent 100%),
+        radial-gradient(2px 2px at 65% 38%, rgba(255,255,255,0.45) 0%, transparent 100%),
+        radial-gradient(5px 5px at 92% 48%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(3px 3px at 15% 72%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 40% 88%, rgba(255,255,255,0.55) 0%, transparent 100%),
+        radial-gradient(4px 4px at 60% 68%, rgba(255,255,255,0.45) 0%, transparent 100%),
+        radial-gradient(3px 3px at 80% 25%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    background-size: 100% 100%;
+    animation: twinkle 6s ease-in-out infinite 1.5s, stars-drift-3 70s ease-in-out infinite;
+    transform-origin: 50% 50%;
+}
+
+@keyframes stars-drift-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(2%, 1.5%) scale(1.02); }
+    50% { transform: translate(-1.5%, 2.5%) scale(0.98); }
+    75% { transform: translate(1%, -1%) scale(1.01); }
+}
+
+@keyframes stars-drift-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-2.5%, -1%) scale(1.03); }
+    66% { transform: translate(1.5%, 2%) scale(0.97); }
+}
+
+@keyframes stars-drift-3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(1%, -2%) scale(1.02); }
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+}
+
+.auth-container-over-galaxy {
+    position: relative;
+    z-index: 2;
+}
+
+/* Start / landing page – Hero section */
+.start-page-galaxy {
+    --hero-gap: 0;
+    --hero-logo-size: 1500px;
+    --hero-title-size: clamp(2.25rem, 3.5vw + 1.5rem, 3.75rem);
+    position: relative;
+    min-height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    background: #050308;
+    isolation: isolate;
+}
+
+.start-page-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "hero-logo hero-content";
+    align-items: center;
+    justify-items: stretch;
+    gap: 0;
+    max-width: 1320px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Left: Logo – proportional to viewport and headline */
+.hero-logo-zone.start-logo-wrap {
+    grid-area: hero-logo;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    perspective: 1200px;
+    justify-self: stretch;
+}
+
+.hero-logo-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    height: 160%;
+    max-width: 900px;
+    max-height: 900px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0, 191, 255, 0.2) 0%,
+        rgba(0, 100, 255, 0.08) 40%,
+        transparent 68%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hero-logo-float {
+    position: relative;
+    z-index: 1;
+    animation: hero-logo-float 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+@keyframes hero-logo-float {
+    0%, 100% { transform: translateY(0) translateZ(0) rotateY(-2deg); }
+    50% { transform: translateY(-10px) translateZ(0) rotateY(2deg); }
+}
+
+.hero-logo-float .start-logo-3d {
+    width: var(--hero-logo-size);
+    height: var(--hero-logo-size);
+    max-width: 100%;
+    max-height: none;
+    min-height: 0;
+    position: relative;
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 0 48px rgba(0, 191, 255, 0.4))
+            drop-shadow(0 0 96px rgba(0, 191, 255, 0.18))
+            drop-shadow(0 20px 48px rgba(0, 0, 0, 0.4));
+}
+
+.hero-logo-float .start-logo-3d canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto;
+    border-radius: 12px;
+}
+
+.hero-logo-float .logo-3d-fallback {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 40px var(--accent-glow));
+}
+
+.start-logo-3d {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+}
+
+.start-logo-3d canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 40px var(--accent-glow));
+}
+
+.start-logo-3d .logo-3d-fallback {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 30px var(--accent-glow));
+}
+.start-logo-3d:has(canvas) .logo-3d-fallback { display: none; }
+
+/* Right: Content – clear visual hierarchy */
+.start-content {
+    grid-area: hero-content;
+    min-width: 0;
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-self: stretch;
+    max-width: 520px;
+}
+
+/* Hierarchy: 1. Title 2. Tagline 3. Intro 4. Notice 5. Actions */
+.start-content .start-title {
+    font-size: var(--hero-title-size);
+    font-weight: 800;
+    color: var(--accent);
+    margin: 0;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    text-shadow: 0 0 24px var(--accent-glow), 0 0 48px rgba(0, 191, 255, 0.25);
+    animation: title-glow 3s ease-in-out infinite;
+}
+
+@keyframes title-glow {
+    0%, 100% {
+        text-shadow: 0 0 24px var(--accent-glow), 0 0 48px rgba(0, 191, 255, 0.25);
+        opacity: 1;
+    }
+    50% {
+        text-shadow: 0 0 32px var(--accent-glow), 0 0 64px rgba(0, 191, 255, 0.4);
+        opacity: 0.98;
+    }
+}
+
+.start-content .start-tagline {
+    font-size: clamp(1.05rem, 1.5vw + 0.75rem, 1.25rem);
+    color: var(--text-muted);
+    margin: 0.5rem 0 0;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+}
+
+.start-content .start-intro {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.start-content .start-intro p {
+    margin: 0 0 0.875rem;
+    color: var(--text-light);
+    font-size: 1rem;
+    line-height: 1.65;
+    opacity: 0.92;
+}
+
+.start-content .start-intro p:last-child {
+    margin-bottom: 0;
+}
+
+.start-content .start-notice {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(0, 191, 255, 0.06);
+    border: 1px solid rgba(0, 191, 255, 0.18);
+    border-radius: 14px;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    backdrop-filter: blur(10px);
+}
+
+.start-content .start-notice a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.start-content .start-notice a:hover {
+    text-decoration: underline;
+}
+
+.start-content .start-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.start-content .start-btn {
+    flex: 0 0 auto;
+    min-width: 160px;
+    padding: 14px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    text-align: center;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.start-btn-signup {
+    box-shadow: 0 4px 20px rgba(0, 191, 255, 0.25);
+}
+
+.start-btn-signin {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.start-btn-signin:hover {
+    background: rgba(0, 191, 255, 0.12);
+    color: var(--accent);
+}
+
+@media (max-width: 900px) {
+    .start-page-galaxy {
+        --hero-logo-size: clamp(260px, 75vw, 360px);
+        --hero-title-size: clamp(2rem, 6vw + 1rem, 2.75rem);
+    }
+    .start-page-inner {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "hero-logo"
+            "hero-content";
+        gap: 2.5rem;
+        padding: 0;
+    }
+    .hero-logo-zone.start-logo-wrap {
+        justify-self: center;
+    }
+    .hero-logo-float .start-logo-3d {
+        width: var(--hero-logo-size);
+        height: var(--hero-logo-size);
+        min-height: 260px;
+        max-height: 50vh;
+    }
+    .start-content {
+        justify-self: center;
+        max-width: 100%;
+    }
+    .start-content .start-title {
+        font-size: var(--hero-title-size);
+    }
+    .start-content .start-actions {
+        margin-top: 1.5rem;
+    }
+}
+
 .auth-container {
     display: flex;
     justify-content: center;
@@ -614,7 +1039,7 @@ body {
 }
 
 .page-dashboard .protocol-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-top: 1.25rem;
 }
@@ -701,7 +1126,7 @@ body {
 
 .protocol-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-top: 0.5rem;
 }
@@ -950,7 +1375,7 @@ body::before {
 }
 
 .challenge-header-page h2 {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-color);
     margin-top: 0.5rem;
@@ -961,11 +1386,15 @@ body::before {
     color: var(--accent);
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     transition: opacity 0.2s;
+}
+
+.challenge-header-page + .alert {
+    font-size: 1.1rem;
 }
 
 .back-link:hover {
@@ -982,6 +1411,10 @@ body::before {
     max-width: 100%;
 }
 
+.challenge-content .btn {
+    font-size: 1.1rem;
+}
+
 .challenge-section {
     margin-bottom: 2rem;
     padding-bottom: 2rem;
@@ -995,7 +1428,7 @@ body::before {
 }
 
 .challenge-section h3 {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -1006,7 +1439,7 @@ body::before {
 .challenge-section p {
     color: var(--text-light);
     line-height: 1.75;
-    font-size: 1rem;
+    font-size: 1.15rem;
 }
 
 .hint-content {
@@ -1016,7 +1449,7 @@ body::before {
     border: 1px solid var(--border-bright);
     border-radius: 10px;
     color: var(--text-light);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
 }
 
 .flag-form {
@@ -1029,7 +1462,7 @@ body::before {
     background: var(--bg-elevated);
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-family: 'JetBrains Mono', monospace;
     color: var(--text-color);
     margin-bottom: 1rem;
@@ -1047,7 +1480,7 @@ body::before {
     padding: 1rem 1.25rem;
     border-radius: 10px;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
 }
 
 .flag-result.success {
@@ -1065,7 +1498,7 @@ body::before {
 .points-value,
 .points-note {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     margin-bottom: 0.75rem;
 }
 

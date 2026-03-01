@@ -5,7 +5,13 @@
 {% block extra_head %}{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="login-page-galaxy login-page-galaxy--home">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container-over-galaxy">
+        <div class="container">
     <header class="challenge-header-page">
         <a href="{% if category_url %}{{ category_url }}{% else %}{{ url_for('home') }}{% endif %}" class="back-link">← Back to challenges</a>
         <h2>{{ challenge.title }}</h2>
@@ -26,45 +32,10 @@
             <p>{{ challenge.description }}</p>
         </section>
         
-        {% if challenge.id == 1 %}
+        {% if challenge.id >= 1 and challenge.id <= 8 %}
         <section class="challenge-section">
             <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_01.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 2 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_02.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 3 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_03.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 4 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_04.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 5 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_05.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 6 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_06.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 7 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_07.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
-        </section>
-        {% elif challenge.id == 8 %}
-        <section class="challenge-section">
-            <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_08.pcapng') }}" download class="btn btn-secondary">Download pcap</a></p>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(challenge.id)) }}" download class="btn btn-secondary">Download pcap</a></p>
         </section>
         {% endif %}
         
@@ -91,6 +62,8 @@
             <div id="flag-result" class="flag-result"></div>
         </section>
     </article>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -104,11 +77,14 @@
         hintContent.style.display = hintContent.style.display === 'none' ? 'block' : 'none';
     });
     
+    let isSubmitting = false;
     document.getElementById('flag-form').addEventListener('submit', async function(e) {
         e.preventDefault();
+        if (isSubmitting) return;
         const form = document.getElementById('flag-form');
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
+        isSubmitting = true;
         
         const challengeId = document.getElementById('challenge-id').value;
         const flag = document.getElementById('flag-input').value.trim();
@@ -153,11 +129,13 @@
                 resultDiv.className = 'flag-result error';
                 resultDiv.textContent = data.message;
                 submitBtn.disabled = false;
+                isSubmitting = false;
             }
         } catch (error) {
             resultDiv.className = 'flag-result error';
             resultDiv.textContent = 'An error occurred. Please try again.';
             submitBtn.disabled = false;
+            isSubmitting = false;
         }
     });
 </script>

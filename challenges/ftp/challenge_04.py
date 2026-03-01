@@ -1,5 +1,6 @@
 """
 Challenge 4: FTP Credential Extraction (submit encoded flag)
+Category: FTP
 """
 import base64
 
@@ -13,5 +14,7 @@ challenge = {
     'expected_outcome': 'Understand FTP protocol security issues and credential extraction',
     'challenge_type': 'network',
     'order_num': 4,
-    'points': 100
+    'points': 100,
+    'category_slug': 'ftp',
+    'order_in_category': 1,
 }
