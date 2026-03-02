@@ -125,3 +125,97 @@ The script uses port **2525** (SMTP alternate) so it does not require administra
 ### What to check
 
 - Filter by **`tcp.port == 8888`**. Use **Follow → TCP Stream** on each connection (stream 0, 1, 2, 3); each stream shows one fragment. Concatenate in order to get **REASSEMBLE_ME**.
+
+---
+
+## Challenge 9 – Image Flag
+
+**Flag (submission):** `IMAGE_FLAG_9` (extract the image from the TCP stream and open it to see the flag).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Install Pillow** if needed: `pip install Pillow`
+3. **Run the script** (from the project root):
+   ```bash
+   python scripts/tcp_fragmented_image_challenge09.py
+   ```
+   The script creates a small PNG image displaying the flag and sends it over **one TCP connection** to **127.0.0.1:9998**.
+4. **Stop the capture** in Wireshark.
+5. **Save** the capture as **`static/pcaps/challenge_09.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`tcp.port == 9998`**. There is a single TCP connection. Use **Follow → TCP Stream** on it. The stream contains the raw PNG bytes from the server. Use **Save as…** → **Raw** to save the stream, then save the file with a `.png` extension. Open the image to see the flag **IMAGE_FLAG_9**.
+- Solver flow: filter tcp.port == 9998 → Follow TCP Stream → Save as Raw → save as .png → open image → submit **IMAGE_FLAG_9**.
+
+### Port note
+
+The script uses port **9998** so it does not conflict with challenge 8 (port 8888).
+
+---
+
+## Challenge 11 – HTTP Login Brute Force
+
+**Flag (submission):** `p@ssw0rd!` (the correct password used in the successful login attempt).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/http_bruteforce_challenge11.py
+   ```
+   The script starts a simple HTTP server on `127.0.0.1:8081` with a `/login` endpoint, then a client sends several `POST /login` requests with different passwords for the **operator** user. Several attempts return `401 Invalid credentials.`; one attempt (the 5th) with the correct password returns `200 Login successful. Welcome, operator!` Two more failed attempts follow after the success.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_11.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`tcp.port == 8081`** or **`http`**. Look for `POST /login` requests.
+- Inspect the request bodies (e.g., using the **HTTP** tab or raw payload) to see the username and password fields, and compare them with the server responses.
+- Most attempts get a `401` response with the body `"Invalid credentials."`. One attempt (in the middle of the sequence, with two more failed attempts after it) gets `200 OK` with `"Login successful. Welcome, operator!"`.
+- The flag is the password value in that successful request, formatted exactly as seen: **`p@ssw0rd!`**.
+
+---
+
+## Challenge 12 – HTTP Status Code
+
+**Flag (submission):** `STATUS_404` (find the response that returned HTTP 404 and submit in this format).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/http_status_challenge12.py
+   ```
+   The script starts an HTTP server on `127.0.0.1:8776`. A client requests `/`, `/about`, `/missing`, and `/index`. The server returns **200** for `/`, `/about`, and `/index`; it returns **404** for `/missing`.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_12.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`http`** or **`tcp.port == 8776`**. Find the response to **GET /missing** (status 404). The flag **STATUS_404** appears in that response’s **X-Flag** header and in the response body. Submit **STATUS_404**.
+
+---
+
+## Challenge 13 – HTTP Request Method
+
+**Flag (submission):** `METHOD_POST` (found in the response to the POST request).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/http_method_challenge13.py
+   ```
+   The script starts an HTTP server on `127.0.0.1:8777`. A client sends **GET /** and **GET /page**, then **POST /submit**. The response to **POST /submit** contains the flag **Base64-encoded** in the X-Flag header and body.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_13.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`http`** or **`tcp.port == 8777`**. Find **POST /submit**, then **Follow → TCP Stream**. In the response you will see the encoded flag (Base64) in the X-Flag header and body. Decode it and submit **METHOD_POST**.
+

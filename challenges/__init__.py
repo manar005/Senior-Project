@@ -12,10 +12,14 @@ from .icmp.challenge_05 import challenge as challenge_05
 from .smtp.challenge_06 import challenge as challenge_06
 from .tls.challenge_09 import challenge as challenge_09
 from .forensics.challenge_10 import challenge as challenge_10
+from .forensics.challenge_11 import challenge as challenge_11
+from .http.challenge_12 import challenge as challenge_12
+from .http.challenge_13 import challenge as challenge_13
 
 
 def get_network_challenges():
-    """Returns all network challenges in global order (for DB insert: id 1→ch01, 2→ch02, … 8→ch08, 9→ch09, 10→ch10 so pcap links work).
+    """Returns all network challenges in global order.
+    IDs map 1→ch01, … 12→ch12, 13→ch13 so pcap links work.
     Category grouping (TCP, etc.) is done via category_slug when inserting into DB.
     """
     return [
@@ -29,4 +33,7 @@ def get_network_challenges():
         challenge_08,
         challenge_09,
         challenge_10,
+        challenge_11,
+        challenge_12,
+        challenge_13,
     ]

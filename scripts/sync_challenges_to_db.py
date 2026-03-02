@@ -8,13 +8,42 @@ Usage: from project root:  python scripts/sync_challenges_to_db.py
 import os
 import sys
 import sqlite3
+import importlib
 
 # Run from project root so we can import challenges
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from challenges import get_network_challenges
+
+def load_challenges_from_source():
+    """
+    Load all challenge dicts fresh from the Python source files.
+
+    This clears cached modules and .pyc files under challenges/, invalidates
+    import caches, and then imports challenges.get_network_challenges().
+    """
+    # Clear cached challenge modules so we always load fresh from .py
+    for name in list(sys.modules.keys()):
+        if name == 'challenges' or name.startswith('challenges.'):
+            del sys.modules[name]
+
+    # Remove challenge .pyc files so Python recompiles from current .py
+    challenges_dir = os.path.join(PROJECT_ROOT, 'challenges')
+    for root, _dirs, files in os.walk(challenges_dir):
+        if '__pycache__' in root:
+            for f in files:
+                if f.endswith('.pyc'):
+                    try:
+                        os.remove(os.path.join(root, f))
+                    except OSError:
+                        pass
+
+    importlib.invalidate_caches()
+    from challenges import get_network_challenges
+
+    return get_network_challenges()
+
 
 DATABASE = os.path.join(PROJECT_ROOT, 'thaghrah.db')
 
@@ -24,8 +53,41 @@ SLUG_TO_TITLE = {
     'icmp': 'ICMP', 'smtp': 'SMTP', 'tls': 'TLS', 'forensics': 'Forensics',
 }
 
+# Order and paths of challenge files (category_folder, module_name) so we can read from disk
+CHALLENGE_FILE_ORDER = [
+    ('http', 'challenge_01'), ('tcp', 'challenge_02'), ('dns', 'challenge_03'),
+    ('ftp', 'challenge_04'), ('icmp', 'challenge_05'), ('smtp', 'challenge_06'),
+    ('tcp', 'challenge_07'), ('tcp', 'challenge_08'), ('tls', 'challenge_09'),
+    ('forensics', 'challenge_10'), ('forensics', 'challenge_11'),
+    ('http', 'challenge_12'),
+    ('http', 'challenge_13'),
+]
+
+
+def load_challenges_from_disk():
+    """
+    Load every challenge dict by reading the .py file from disk and exec'ing it.
+    This guarantees the DB is updated from the actual file contents, not cached imports.
+    """
+    challenges = []
+    for category, module_name in CHALLENGE_FILE_ORDER:
+        path = os.path.join(PROJECT_ROOT, 'challenges', category, module_name + '.py')
+        if not os.path.isfile(path):
+            continue
+        with open(path, 'r', encoding='utf-8') as f:
+            ns = {}
+            exec(compile(f.read(), path, 'exec'), ns)
+        c = ns.get('challenge')
+        if c and isinstance(c, dict):
+            challenges.append(c)
+    return challenges
+
+
 def sync():
-    challenges = get_network_challenges()
+    # Prefer disk so any saved edit is reflected regardless of .pyc/import cache
+    challenges = load_challenges_from_disk()
+    if not challenges:
+        challenges = load_challenges_from_source()
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     categories = conn.execute('SELECT id, title FROM challenge_categories').fetchall()
@@ -57,6 +119,17 @@ def sync():
             ))
         if cur.rowcount > 0:
             updated += 1
+        else:
+            # New challenge row: INSERT so sync adds challenges 12, 13, ...
+            cat_id = category_id if category_id is not None else (list(title_to_id.values())[0] if title_to_id else None)
+            if cat_id is not None:
+                conn.execute('''
+                    INSERT INTO challenges (id, category_id, title, description, hint, flag,
+                        expected_outcome, challenge_type, challenge_data, order_num, points)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (i, cat_id, c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
+                      c['challenge_type'], c.get('challenge_data'), order_in_cat, c.get('points', 100)))
+                updated += 1
     conn.commit()
     conn.close()
     return updated, len(challenges)

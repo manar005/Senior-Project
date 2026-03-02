@@ -1,13 +1,13 @@
 """
-Challenge 9: HTTPS/TLS Analysis (content from former challenge 6)
+Challenge 9: Image Flag
 Category: TLS
 """
 challenge = {
-    'title': 'HTTPS/TLS Analysis',
-    'description': 'Analyze this HTTPS connection. What TLS version was used? The flag format is TLS_VERSION_X_X (e.g., TLS_VERSION_1_3).',
-    'hint': 'Filter for TLS/SSL packets using "tls" or "ssl" filter. Look at the Client Hello packet. The TLS version is shown in the handshake protocol. Common versions: 1.0, 1.1, 1.2, 1.3.',
-    'flag': 'TLS_VERSION_1_2',
-    'expected_outcome': 'Understand TLS/SSL handshake and version identification',
+    'title': 'Image Flag',
+    'description': 'A PNG image containing the flag was sent over a single TCP connection on port 9998. Find the connection, extract the image data from the stream, and open the image to see the flag.',
+    'hint': 'Filter by "tcp.port == 9998". Right-click a packet → Follow → TCP Stream. The stream shows the raw PNG bytes from the server. Use "Save as..." and choose Raw format to save the stream. Save it as a .png file and open the image to see the flag.',
+    'flag': 'IMAGE_FLAG_9',
+    'expected_outcome': 'Learn how to extract binary data (e.g. an image) from a TCP stream in Wireshark',
     'challenge_type': 'network',
     'order_num': 9,
     'points': 100,
