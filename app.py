@@ -21,10 +21,23 @@ CATEGORY_SLUG_TO_ORDER = {
     'icmp': 5, 'smtp': 6, 'tls': 7, 'forensics': 8,
 }
 
+import re
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
 DATABASE = 'thaghrah.db'
+
+def validate_password(password):
+    """Validate password: at least 8 chars, one uppercase letter, one special character."""
+    if len(password) < 8:
+        return False, 'Password must be at least 8 characters long.'
+    if not re.search(r'[A-Z]', password):
+        return False, 'Password must contain at least one capital letter.'
+    if not re.search(r'[^A-Za-z0-9]', password):
+        return False, 'Password must contain at least one special character.'
+    return True, None
+
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -321,6 +334,11 @@ def register():
             conn.close()
             return render_template('register.html', error='This email is already registered. Please sign in or use a different email.')
         
+        valid, msg = validate_password(password)
+        if not valid:
+            conn.close()
+            return render_template('register.html', error=msg)
+        
         try:
             password_hash = generate_password_hash(password)
             user_id = db_queries.create_user(conn, name, email, password_hash)
@@ -409,6 +427,9 @@ def reset_password():
             return render_template('reset_password.html', reset_email=reset_email, error='Both password fields are required')
         if new_password != confirm_password:
             return render_template('reset_password.html', reset_email=reset_email, error='Passwords do not match')
+        valid, msg = validate_password(new_password)
+        if not valid:
+            return render_template('reset_password.html', reset_email=reset_email, error=msg)
         conn = get_db()
         row = db_queries.get_valid_reset_by_token(conn, reset_token)
         if not row or row['email'] != reset_email:

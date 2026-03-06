@@ -771,6 +771,13 @@ body {
     color: var(--text-muted);
 }
 
+.form-hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 .btn {
     padding: 12px 20px;
     border: none;
