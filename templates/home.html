@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Home - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber app-body{% endblock %}
 
 {% block content %}
 <div class="login-page-galaxy login-page-galaxy--home">
@@ -9,8 +10,9 @@
     <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
     <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
     <div class="auth-container-over-galaxy">
-        <div class="home-container page-home">
+        <div class="home-container page-home cyber-page-shell">
             <header class="home-hero">
+                <p class="section-chip">Command center</p>
                 <div class="logo-container">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="main-logo">
                 </div>
@@ -22,7 +24,7 @@
             </header>
             
             {% if user_badges is defined %}
-            <section class="home-stats">
+            <section class="home-stats stat-strip">
                 <div class="home-stat">
                     <span class="home-stat-value">{{ total_points | default(0) }}</span>
                     <span class="home-stat-label">Points</span>
@@ -33,7 +35,7 @@
                 </div>
             </section>
             
-            <section class="scoring-panel">
+            <section class="scoring-panel cyber-panel">
                 <div class="scoring-header">
                     <h2>Your badges</h2>
                     <p class="badge-count">{{ user_badges|length }} of {{ total_badges }} earned</p>
@@ -55,7 +57,7 @@
             </section>
             {% endif %}
             
-            <section class="challenge-selection">
+            <section class="challenge-selection cyber-panel challenge-selection-panel">
                 <h2>Ready to play?</h2>
                 <p class="selection-subtitle">Pick a protocol, crack the traffic, and earn points. Master Wireshark and level up your network security skills.</p>
                 <div class="cta-wrap">

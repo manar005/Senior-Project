@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ category.title }} challenges - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber app-body{% endblock %}
 
 {% block content %}
 <div class="login-page-galaxy login-page-galaxy--home">
@@ -9,9 +10,10 @@
     <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
     <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
     <div class="auth-container-over-galaxy">
-        <div class="container">
+        <div class="container cyber-page-shell">
             <header class="dashboard-header">
                 <a href="{{ url_for('network_challenges') }}" class="back-link">← Back to protocols</a>
+                <p class="section-chip">Protocol track</p>
                 <div class="dashboard-logo-container">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="dashboard-logo">
                 </div>
@@ -19,7 +21,7 @@
                 <p>Choose a challenge below. Complete them in order to unlock the next and earn points.</p>
             </header>
 
-            <section class="dashboard-stats">
+            <section class="dashboard-stats stat-strip">
                 <div class="dash-stat">
                     <span class="dash-stat-value">{{ completed_in_category }}<span class="dash-stat-suffix">/{{ challenges|length }}</span></span>
                     <span class="dash-stat-label">In this protocol</span>
@@ -32,7 +34,7 @@
                 {% endif %}
             </section>
 
-            <section class="challenges-section">
+            <section class="challenges-section cyber-panel">
                 <h3 class="section-title">Challenges</h3>
                 <div class="challenges-grid">
                     {% for challenge in challenges %}

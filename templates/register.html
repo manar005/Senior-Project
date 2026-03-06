@@ -1,39 +1,47 @@
 {% extends "base.html" %}
 
 {% block title %}Register - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber auth-body{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Create account</h2>
-        <p class="subtitle">Start your cybersecurity learning journey today.</p>
-        
-        {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
-        {% endif %}
-        
-        <form method="POST" action="{{ url_for('register') }}" class="auth-form">
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" required autofocus placeholder="Your name">
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="you@example.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••" title="At least 8 characters, one capital letter, one special character">
-                <small class="form-hint">At least 8 characters, one capital letter, and one special character</small>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirm password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required minlength="8" placeholder="••••••••">
-            </div>
-            <button type="submit" class="btn btn-primary">Create account</button>
-        </form>
-        
-        <p class="auth-link">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+<div class="login-page-galaxy">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container auth-container-over-galaxy">
+        <div class="auth-card auth-card-cyber">
+            <p class="auth-eyebrow">New operator</p>
+            <h2>Create account</h2>
+            <p class="subtitle">Start your cybersecurity learning journey today.</p>
+            
+            {% if error %}
+            <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required autofocus placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••" title="At least 8 characters, one capital letter, one special character">
+                    <small class="form-hint">At least 8 characters, one capital letter, and one special character</small>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="8" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary">Create account</button>
+            </form>
+            
+            <p class="auth-link">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+        </div>
     </div>
 </div>
 {% endblock %}

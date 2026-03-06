@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Login - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber auth-body{% endblock %}
 
 {% block content %}
 <div class="login-page-galaxy">
@@ -9,9 +10,10 @@
     <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
     <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
     <div class="auth-container auth-container-over-galaxy">
-        <div class="auth-card">
+        <div class="auth-card auth-card-cyber">
+            <p class="auth-eyebrow">Secure access</p>
             <h2>Sign in</h2>
-            <p class="subtitle">Welcome back. Sign in to continue your journey.</p>
+            <p class="subtitle">Welcome back. Sign in to continue your protocol training.</p>
             
             {% if error %}
             <div class="alert alert-error">{{ error }}</div>

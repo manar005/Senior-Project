@@ -1,81 +1,55 @@
 {% extends "base.html" %}
 
 {% block title %}Welcome - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber landing-body{% endblock %}
 
 {% block content %}
-<div class="start-page-galaxy" id="hero-section">
-    <div class="galaxy-bg" aria-hidden="true"></div>
-    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
-    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
-    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
-    <div class="start-page-inner auth-container-over-galaxy">
-        <div class="hero-logo-zone start-logo-wrap" id="hero-logo-zone">
-            <div class="hero-logo-glow" aria-hidden="true"></div>
-            <div class="hero-logo-float">
-                <div class="start-logo-3d hero-logo-inner" id="logo-3d-container">
-                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="start-logo-img logo-3d-fallback">
-                    <noscript><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="start-logo-img"></noscript>
-                </div>
-            </div>
+<section class="landing-page" id="hero-section">
+    <div class="landing-grid" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="landing-wave landing-wave-top" aria-hidden="true"></div>
+    <div class="landing-wave landing-wave-bottom" aria-hidden="true"></div>
+    <div class="landing-noise" aria-hidden="true"></div>
+
+    <div class="landing-center">
+        <p class="landing-kicker">Interactive cybersecurity learning experience</p>
+        <div class="landing-title-frame">
+            <span class="landing-title-mark">=</span>
+            <h1 class="landing-title">THAGHRAH</h1>
+            <span class="landing-title-mark">=</span>
         </div>
-        <div class="start-content">
-            <h1 class="start-title">THAGHRAH</h1>
-            <p class="start-tagline">Educational Cybersecurity Learning Platform</p>
-            <div class="start-intro">
-                <p>Learn network security with hands-on challenges: analyze packet captures, trace protocols, and find flags like real defenders.</p>
-                <p>Challenges cover multiple network protocols. Use hints when stuck and earn points and badges.</p>
-            </div>
-            <div class="start-notice">
-                <strong>BEFORE YOU START:</strong> Install <strong>Wireshark</strong> to open the pcap files. <a href="https://www.wireshark.org/download.html" target="_blank" rel="noopener">Download here</a>.
-            </div>
-            <div class="start-actions">
-                <a href="{{ url_for('register') }}" class="btn btn-primary start-btn start-btn-signup">Sign up</a>
-                <a href="{{ url_for('login') }}" class="btn btn-secondary start-btn start-btn-signin">Sign in</a>
-            </div>
+        <p class="landing-subtitle">Master network traffic analysis through guided protocol challenges, flags, badges, and points.</p>
+        <div class="landing-actions">
+            <a href="{{ url_for('register') }}" class="btn btn-primary landing-btn">Launch platform</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary landing-btn">Sign in</a>
+        </div>
+        <div class="landing-note">
+            <span>Recommended:</span> install <strong>Wireshark</strong> before starting the pcap-based labs.
+            <a href="https://www.wireshark.org/download.html" target="_blank" rel="noopener">Download</a>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
+
 {% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="{{ url_for('static', filename='js/logo-3d.js') }}"></script>
 <script>
 (function() {
-    var container = document.getElementById('logo-3d-container');
-    var logoUrl = '{{ url_for("static", filename="images/logo.png") }}';
-    if (container && typeof initLogo3D === 'function') {
-        initLogo3D(container, logoUrl);
-    }
-    // Parallax on mouse move (move the whole logo zone slightly)
-    var zone = document.getElementById('hero-logo-zone');
-    var floatEl = document.querySelector('.hero-logo-float');
-    if (zone && floatEl) {
-        zone.addEventListener('mousemove', function(e) {
-            var rect = zone.getBoundingClientRect();
-            var x = (e.clientX - rect.left) / rect.width - 0.5;
-            var y = (e.clientY - rect.top) / rect.height - 0.5;
-            var moveX = x * 14;
-            var moveY = y * -12;
-            floatEl.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px) translateZ(0)';
-        });
-        zone.addEventListener('mouseleave', function() {
-            floatEl.style.transform = '';
-        });
-    }
+    var hero = document.getElementById('hero-section');
+    if (!hero) return;
+    hero.addEventListener('mousemove', function(e) {
+        var rect = hero.getBoundingClientRect();
+        var x = (e.clientX - rect.left) / rect.width - 0.5;
+        var y = (e.clientY - rect.top) / rect.height - 0.5;
+        hero.style.setProperty('--pointer-x', x.toFixed(3));
+        hero.style.setProperty('--pointer-y', y.toFixed(3));
+    });
+    hero.addEventListener('mouseleave', function() {
+        hero.style.setProperty('--pointer-x', '0');
+        hero.style.setProperty('--pointer-y', '0');
+    });
 })();
-    // Scroll hero (logo + text) into the center of the viewport on load
-    (function() {
-        var hero = document.getElementById('hero-section');
-        if (hero) {
-            function scrollHeroToCenter() {
-                hero.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-            }
-            if (document.readyState === 'complete') {
-                setTimeout(scrollHeroToCenter, 100);
-            } else {
-                window.addEventListener('load', function() { setTimeout(scrollHeroToCenter, 100); });
-            }
-        }
-    })();
 </script>
 {% endblock %}

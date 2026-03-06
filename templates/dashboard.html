@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber app-body{% endblock %}
 
 {% block content %}
 <div class="login-page-galaxy login-page-galaxy--home">
@@ -9,9 +10,10 @@
     <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
     <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
     <div class="auth-container-over-galaxy">
-        <div class="container page-dashboard">
+        <div class="container page-dashboard cyber-page-shell">
             <header class="dashboard-header">
                 <a href="{{ url_for('home') }}" class="back-link">← Back to home</a>
+                <p class="section-chip">Mission map</p>
                 <div class="dashboard-logo-container">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Thaghrah" class="dashboard-logo">
                 </div>
@@ -19,7 +21,7 @@
                 <p>Pick a protocol below and complete challenges to unlock the next. Track your progress and earn points.</p>
             </header>
             
-            <section class="dashboard-stats">
+            <section class="dashboard-stats stat-strip">
                 <div class="dash-stat">
                     <span class="dash-stat-value">{{ completed_ids|length }}<span class="dash-stat-suffix">/{{ all_challenges|length }}</span></span>
                     <span class="dash-stat-label">Challenges</span>
@@ -33,7 +35,7 @@
             </section>
             
             <div class="progress-summary">
-                <div class="progress-card">
+                <div class="progress-card cyber-panel">
                     <h3>Progress</h3>
                     <p class="progress-text">{{ completed_ids|length }} of {{ all_challenges|length }} completed</p>
                     <div class="progress-bar">
@@ -42,7 +44,7 @@
                 </div>
             </div>
             
-            <section class="challenges-section">
+            <section class="challenges-section cyber-panel">
                 <h3 class="section-title">Challenges by protocol</h3>
                 <p class="section-subtitle">Click a protocol to see its challenges and start playing.</p>
                 <div class="protocol-grid">
