@@ -34,7 +34,28 @@
                 {% endif %}
             </section>
 
-            <section class="challenges-section cyber-panel">
+            <section class="protocol-info-panel cyber-panel">
+                <div class="protocol-info-header">
+                    <h3 class="section-title">About {{ category.title }}</h3>
+                    <p class="section-subtitle">{{ protocol_details.overview }}</p>
+                </div>
+                <div class="protocol-info-grid">
+                    <div class="protocol-info-card">
+                        <span class="protocol-info-label">Common ports</span>
+                        <p>{{ protocol_details.common_ports }}</p>
+                    </div>
+                    <div class="protocol-info-card">
+                        <span class="protocol-info-label">What to inspect</span>
+                        <p>{{ protocol_details.focus }}</p>
+                    </div>
+                    <div class="protocol-info-card protocol-info-card-wide">
+                        <span class="protocol-info-label">Why it matters</span>
+                        <p>{{ protocol_details.why_it_matters }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="challenges-section cyber-panel protocol-challenges-panel">
                 <h3 class="section-title">Challenges</h3>
                 <div class="challenges-grid">
                     {% for challenge in challenges %}
