@@ -219,3 +219,47 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 
 - Filter by **`http`** or **`tcp.port == 8777`**. Find **POST /submit**, then **Follow → TCP Stream**. In the response you will see the encoded flag (Base64) in the X-Flag header and body. Decode it and submit **METHOD_POST**.
 
+---
+
+## Challenge 14 – HTTP Cookie Extraction
+
+**Flag (submission):** `COOKIE_SESSION_FLAG` (the session cookie value from the Set-Cookie header after successful login).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/http_cookie_challenge14.py
+   ```
+   The script starts an HTTP server on `127.0.0.1:8778` with a `/login` endpoint. A client sends several `POST /login` requests with username **admin** and different passwords. Failed attempts return **401** with no Set-Cookie; the successful attempt (4th) returns **200** with **Set-Cookie: session=COOKIE_SESSION_FLAG; Path=/; HttpOnly**.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_14.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`http`** or **`tcp.port == 8778`**. Find **POST /login** requests and inspect each response.
+- The successful response is **200 OK** and includes a **Set-Cookie** header. The flag is the **cookie value** only (the part after `session=` and before the first `;`), i.e. **COOKIE_SESSION_FLAG**.
+- Submit **COOKIE_SESSION_FLAG** (exactly as in the header).
+
+---
+
+## Challenge 15 – HTTP Redirect Chain
+
+**Flag (submission):** `REDIRECT_FINAL` (found in the final response of the redirect chain only).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/http_redirect_challenge15.py
+   ```
+   The script starts an HTTP server on `127.0.0.1:8779`. The client sends **separate connections** in this order: **GET /entry** (302 → /phase2), **GET /about** (200), **GET /phase2** (302 → /verify), **GET /help** (200), **GET /verify** (302 → /result), **GET /contact** (200), **GET /result** (200 with **X-Flag: REDIRECT_FINAL**). So /about and /help appear in between the redirect steps; the chain is spread across streams.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_15.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter by **`http`** or **`tcp.port == 8779`**. Each request is a separate TCP stream. Find streams with **302** responses; the chain is interleaved with **GET /about**, **GET /help**, **GET /contact** (all 200). Follow **Location** from one stream to the next: /entry → /phase2 → /verify → /result. The stream with **GET /result** and **200 OK** contains **X-Flag: REDIRECT_FINAL**. Submit **REDIRECT_FINAL**.
+

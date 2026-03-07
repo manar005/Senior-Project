@@ -15,11 +15,13 @@ from .forensics.challenge_10 import challenge as challenge_10
 from .forensics.challenge_11 import challenge as challenge_11
 from .http.challenge_12 import challenge as challenge_12
 from .http.challenge_13 import challenge as challenge_13
+from .http.challenge_14 import challenge as challenge_14
+from .http.challenge_15 import challenge as challenge_15
 
 
 def get_network_challenges():
     """Returns all network challenges in global order.
-    IDs map 1→ch01, … 12→ch12, 13→ch13 so pcap links work.
+    IDs map 1→ch01, … 14→ch14, 15→ch15 so pcap links work.
     Category grouping (TCP, etc.) is done via category_slug when inserting into DB.
     """
     return [
@@ -36,4 +38,6 @@ def get_network_challenges():
         challenge_11,
         challenge_12,
         challenge_13,
+        challenge_14,
+        challenge_15,
     ]
