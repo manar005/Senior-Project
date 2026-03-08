@@ -40,6 +40,13 @@
             <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(challenge.id)) }}" download class="btn btn-secondary">Download pcap</a></p>
         </section>
         {% endif %}
+        {% if challenge.id == 16 %}
+        <section class="challenge-section">
+            <h3>Private key (for decryption)</h3>
+            <p><a href="{{ url_for('static', filename='keys/challenge_16_private.pem') }}" download class="btn btn-secondary">Download private key</a></p>
+            <p class="points-note">Use this key in Wireshark to decrypt the TLS traffic and see the full message (see Hint).</p>
+        </section>
+        {% endif %}
         
         <section class="challenge-section">
             <h3>Hint</h3>

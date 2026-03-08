@@ -63,6 +63,7 @@ CHALLENGE_FILE_ORDER = [
     ('http', 'challenge_13'),
     ('http', 'challenge_14'),
     ('http', 'challenge_15'),
+    ('tls', 'challenge_16'),
 ]
 
 

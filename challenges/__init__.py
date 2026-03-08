@@ -11,6 +11,7 @@ from .ftp.challenge_04 import challenge as challenge_04
 from .icmp.challenge_05 import challenge as challenge_05
 from .smtp.challenge_06 import challenge as challenge_06
 from .tls.challenge_09 import challenge as challenge_09
+from .tls.challenge_16 import challenge as challenge_16
 from .forensics.challenge_10 import challenge as challenge_10
 from .forensics.challenge_11 import challenge as challenge_11
 from .http.challenge_12 import challenge as challenge_12
@@ -34,6 +35,7 @@ def get_network_challenges():
         challenge_07,
         challenge_08,
         challenge_09,
+        challenge_16,
         challenge_10,
         challenge_11,
         challenge_12,

@@ -1268,16 +1268,22 @@ body::before {
 
 /* Challenges Grid */
 .challenges-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 1.25rem;
     margin-top: 2rem;
 }
 
+.challenges-grid .challenge-card {
+    flex: 0 0 min(320px, 100%);
+    box-sizing: border-box;
+}
+
 .challenges-grid .last-challenge {
-    grid-column: 1 / -1;
     max-width: 320px;
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .challenge-card {
@@ -1995,7 +2001,12 @@ body::before {
     }
     
     .challenges-grid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: center;
+    }
+    .challenges-grid .challenge-card {
+        flex: 0 0 100%;
+        max-width: 100%;
     }
     
     .protocol-grid,
