@@ -251,13 +251,10 @@ def init_db():
                 conn.commit()
         except (sqlite3.OperationalError, StopIteration):
             pass
-        # Ensure TLS and Forensics challenges (ids 9 and 10) point to the right categories (fix orphaned refs)
+        # Ensure Forensics challenge (id 10) points to the right category (fix orphaned refs)
         try:
             categories = db_queries.get_all_categories(conn)
-            tls_cat = next((c for c in categories if c['title'] == 'TLS'), None)
             forensics_cat = next((c for c in categories if c['title'] == 'Forensics'), None)
-            if tls_cat:
-                conn.execute('UPDATE challenges SET category_id = ? WHERE id = 9', (tls_cat['id'],))
             if forensics_cat:
                 conn.execute('UPDATE challenges SET category_id = ? WHERE id = 10', (forensics_cat['id'],))
             conn.commit()

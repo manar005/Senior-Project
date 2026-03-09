@@ -1,6 +1,6 @@
 """
 Challenge 9: Image Flag
-Category: TLS
+Category: TCP
 """
 challenge = {
     'title': 'Image Flag',
@@ -11,6 +11,6 @@ challenge = {
     'challenge_type': 'network',
     'order_num': 9,
     'points': 100,
-    'category_slug': 'tls',
-    'order_in_category': 1,
+    'category_slug': 'tcp',
+    'order_in_category': 4,
 }

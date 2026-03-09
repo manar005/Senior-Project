@@ -263,3 +263,25 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 
 - Filter by **`http`** or **`tcp.port == 8779`**. Each request is a separate TCP stream. Find streams with **302** responses; the chain is interleaved with **GET /about**, **GET /help**, **GET /contact** (all 200). Follow **Location** from one stream to the next: /entry → /phase2 → /verify → /result. The stream with **GET /result** and **200 OK** contains **X-Flag: REDIRECT_FINAL**. Submit **REDIRECT_FINAL**.
 
+---
+
+## Challenge 17 – Port-Knock Flag
+
+**Flag (submission):** `KNOCK_OPEN` (destination ports of the SYN packets, in order, spell the flag as ASCII).
+
+### Steps
+
+1. **Start Wireshark** and begin a capture on the **loopback** interface.
+2. **Run the script** (from the project root):
+   ```bash
+   python scripts/port_knock_challenge17.py
+   ```
+   The script tries to connect to **127.0.0.1** on a sequence of ports (75, 78, 79, 67, 75, 95, 79, 80, 69, 78). No server is listening, so each attempt sends a **TCP SYN** and then gets RST or times out. The **destination port** of each SYN, in packet order, is the ASCII code for **K N O C K _ O P E N**.
+3. **Stop the capture** in Wireshark.
+4. **Save** the capture as **`static/pcaps/challenge_17.pcapng`** (File → Save As…).
+
+### What to check
+
+- Filter for initial SYNs: **`tcp.flags.syn==1 and tcp.flags.ack==0`**. For each packet, note the **Destination port** in the TCP header (75, 78, 79, 67, 75, 95, 79, 80, 69, 78). Convert each to ASCII (e.g. 75 = K, 78 = N, …) and concatenate to get **KNOCK_OPEN**.
+- Solver submits **KNOCK_OPEN**.
+

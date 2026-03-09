@@ -57,13 +57,14 @@ SLUG_TO_TITLE = {
 CHALLENGE_FILE_ORDER = [
     ('http', 'challenge_01'), ('tcp', 'challenge_02'), ('dns', 'challenge_03'),
     ('ftp', 'challenge_04'), ('icmp', 'challenge_05'), ('smtp', 'challenge_06'),
-    ('tcp', 'challenge_07'), ('tcp', 'challenge_08'), ('tls', 'challenge_09'),
+    ('tcp', 'challenge_07'), ('tcp', 'challenge_08'), ('tcp', 'challenge_09'),
     ('forensics', 'challenge_10'), ('forensics', 'challenge_11'),
     ('http', 'challenge_12'),
     ('http', 'challenge_13'),
     ('http', 'challenge_14'),
     ('http', 'challenge_15'),
     ('tls', 'challenge_16'),
+    ('tcp', 'challenge_17'),
 ]
 
 

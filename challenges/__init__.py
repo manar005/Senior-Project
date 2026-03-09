@@ -1,6 +1,6 @@
 """
 Challenges module - Loads all challenges from category folders.
-Each protocol has its own folder; TCP has 3 challenges (handshake, count, fragmentation).
+Each protocol has its own folder; TCP has 5 challenges.
 """
 from .http.challenge_01 import challenge as challenge_01
 from .tcp.challenge_02 import challenge as challenge_02
@@ -10,7 +10,8 @@ from .dns.challenge_03 import challenge as challenge_03
 from .ftp.challenge_04 import challenge as challenge_04
 from .icmp.challenge_05 import challenge as challenge_05
 from .smtp.challenge_06 import challenge as challenge_06
-from .tls.challenge_09 import challenge as challenge_09
+from .tcp.challenge_09 import challenge as challenge_09
+from .tcp.challenge_17 import challenge as challenge_17
 from .tls.challenge_16 import challenge as challenge_16
 from .forensics.challenge_10 import challenge as challenge_10
 from .forensics.challenge_11 import challenge as challenge_11
@@ -35,6 +36,7 @@ def get_network_challenges():
         challenge_07,
         challenge_08,
         challenge_09,
+        challenge_17,
         challenge_16,
         challenge_10,
         challenge_11,
