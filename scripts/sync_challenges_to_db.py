@@ -69,6 +69,10 @@ CHALLENGE_FILE_ORDER = [
     ('dns', 'challenge_19'),
     ('dns', 'challenge_20'),
     ('dns', 'challenge_21'),
+    ('ftp', 'challenge_22'),
+    ('ftp', 'challenge_23'),
+    ('ftp', 'challenge_24'),
+    ('ftp', 'challenge_25'),
 ]
 
 

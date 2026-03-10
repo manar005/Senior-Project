@@ -12,6 +12,10 @@ from .dns.challenge_19 import challenge as challenge_19
 from .dns.challenge_20 import challenge as challenge_20
 from .dns.challenge_21 import challenge as challenge_21
 from .ftp.challenge_04 import challenge as challenge_04
+from .ftp.challenge_22 import challenge as challenge_22
+from .ftp.challenge_23 import challenge as challenge_23
+from .ftp.challenge_24 import challenge as challenge_24
+from .ftp.challenge_25 import challenge as challenge_25
 from .icmp.challenge_05 import challenge as challenge_05
 from .smtp.challenge_06 import challenge as challenge_06
 from .tcp.challenge_09 import challenge as challenge_09
@@ -27,7 +31,7 @@ from .http.challenge_15 import challenge as challenge_15
 
 def get_network_challenges():
     """Returns all network challenges in global order.
-    IDs map 1→ch01, … 14→ch14, 15→ch15 so pcap links work.
+    IDs map 1?ch01, ? 14?ch14, 15?ch15 so pcap links work.
     Category grouping (TCP, etc.) is done via category_slug when inserting into DB.
     """
     return [
@@ -52,4 +56,8 @@ def get_network_challenges():
         challenge_19,
         challenge_20,
         challenge_21,
+        challenge_22,
+        challenge_23,
+        challenge_24,
+        challenge_25,
     ]
