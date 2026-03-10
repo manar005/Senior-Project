@@ -7,6 +7,10 @@ from .tcp.challenge_02 import challenge as challenge_02
 from .tcp.challenge_07 import challenge as challenge_07
 from .tcp.challenge_08 import challenge as challenge_08
 from .dns.challenge_03 import challenge as challenge_03
+from .dns.challenge_18 import challenge as challenge_18
+from .dns.challenge_19 import challenge as challenge_19
+from .dns.challenge_20 import challenge as challenge_20
+from .dns.challenge_21 import challenge as challenge_21
 from .ftp.challenge_04 import challenge as challenge_04
 from .icmp.challenge_05 import challenge as challenge_05
 from .smtp.challenge_06 import challenge as challenge_06
@@ -44,4 +48,8 @@ def get_network_challenges():
         challenge_13,
         challenge_14,
         challenge_15,
+        challenge_18,
+        challenge_19,
+        challenge_20,
+        challenge_21,
     ]

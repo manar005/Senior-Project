@@ -65,6 +65,10 @@ CHALLENGE_FILE_ORDER = [
     ('http', 'challenge_15'),
     ('tls', 'challenge_16'),
     ('tcp', 'challenge_17'),
+    ('dns', 'challenge_18'),
+    ('dns', 'challenge_19'),
+    ('dns', 'challenge_20'),
+    ('dns', 'challenge_21'),
 ]
 
 
