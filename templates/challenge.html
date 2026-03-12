@@ -34,7 +34,7 @@
             <p>{{ challenge.description }}</p>
         </section>
         
-        {% if challenge.id >= 1 and challenge.id <= 25 %}
+        {% if challenge.id >= 1 and challenge.id <= 40 %}
         <section class="challenge-section">
             <h3>Capture file</h3>
             <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(challenge.id)) }}" download class="btn btn-secondary">Download pcap</a></p>

@@ -3,6 +3,14 @@
 {% block title %}{{ category.title }} challenges - Thaghrah{% endblock %}
 {% block body_class %}theme-cyber app-body{% endblock %}
 
+{% block extra_head %}
+<style>
+.protocol-complete-section { text-align: center; margin-top: 2rem; }
+.protocol-complete-buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: center; }
+.protocol-complete-buttons .btn-protocol-nav { display: inline-block; width: auto; min-width: 10rem; padding: 0.65rem 1.75rem; font-size: 1rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="login-page-galaxy login-page-galaxy--home">
     <div class="galaxy-bg" aria-hidden="true"></div>
@@ -68,7 +76,9 @@
                         </div>
                         <p class="challenge-description">{{ challenge.description[:100] }}{% if challenge.description|length > 100 %}…{% endif %}</p>
                         <div class="challenge-footer">
-                            {% if challenge.id in unlocked %}
+                            {% if challenge.id in completed_ids %}
+                            <a href="{{ url_for('challenge', challenge_id=challenge.id) }}" class="btn btn-secondary">Completed</a>
+                            {% elif challenge.id in unlocked %}
                             <a href="{{ url_for('challenge', challenge_id=challenge.id) }}" class="btn btn-primary">Start challenge</a>
                             {% else %}
                             <button class="btn btn-disabled" disabled>Complete previous</button>
@@ -78,6 +88,19 @@
                     {% endfor %}
                 </div>
             </section>
+
+            {% if category_completed and (next_category or previous_category) %}
+            <section class="protocol-complete-section">
+                <div class="protocol-complete-buttons">
+                    {% if previous_category %}
+                    <a href="{{ url_for('category_challenges', category_id=previous_category['id']) }}" class="btn btn-secondary btn-protocol-nav">← {{ previous_category['title'] }}</a>
+                    {% endif %}
+                    {% if next_category %}
+                    <a href="{{ url_for('category_challenges', category_id=next_category['id']) }}" class="btn btn-primary btn-protocol-nav">{{ next_category['title'] }} →</a>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
         </div>
     </div>
 </div>

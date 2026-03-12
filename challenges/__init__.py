@@ -17,12 +17,27 @@ from .ftp.challenge_23 import challenge as challenge_23
 from .ftp.challenge_24 import challenge as challenge_24
 from .ftp.challenge_25 import challenge as challenge_25
 from .icmp.challenge_05 import challenge as challenge_05
+from .icmp.challenge_26 import challenge as challenge_26
+from .icmp.challenge_27 import challenge as challenge_27
+from .icmp.challenge_28 import challenge as challenge_28
+from .icmp.challenge_29 import challenge as challenge_29
 from .smtp.challenge_06 import challenge as challenge_06
+from .smtp.challenge_30 import challenge as challenge_30
+from .smtp.challenge_31 import challenge as challenge_31
+from .smtp.challenge_32 import challenge as challenge_32
+from .smtp.challenge_33 import challenge as challenge_33
 from .tcp.challenge_09 import challenge as challenge_09
 from .tcp.challenge_17 import challenge as challenge_17
 from .tls.challenge_16 import challenge as challenge_16
+from .tls.challenge_34 import challenge as challenge_34
+from .tls.challenge_35 import challenge as challenge_35
+from .tls.challenge_36 import challenge as challenge_36
+from .tls.challenge_37 import challenge as challenge_37
 from .forensics.challenge_10 import challenge as challenge_10
 from .forensics.challenge_11 import challenge as challenge_11
+from .forensics.challenge_38 import challenge as challenge_38
+from .forensics.challenge_39 import challenge as challenge_39
+from .forensics.challenge_40 import challenge as challenge_40
 from .http.challenge_12 import challenge as challenge_12
 from .http.challenge_13 import challenge as challenge_13
 from .http.challenge_14 import challenge as challenge_14
@@ -60,4 +75,19 @@ def get_network_challenges():
         challenge_23,
         challenge_24,
         challenge_25,
+        challenge_26,
+        challenge_27,
+        challenge_28,
+        challenge_29,
+        challenge_30,
+        challenge_31,
+        challenge_32,
+        challenge_33,
+        challenge_34,
+        challenge_35,
+        challenge_36,
+        challenge_37,
+        challenge_38,
+        challenge_39,
+        challenge_40,
     ]

@@ -10,7 +10,7 @@ challenge = {
     'expected_outcome': 'Learn how session cookies are set over HTTP and that cookie values are visible in plain text in captured traffic',
     'challenge_type': 'network',
     'order_num': 14,
-    'points': 100,
+    'points': 130,
     'category_slug': 'http',
     'order_in_category': 4,
 }

@@ -9,7 +9,7 @@ challenge = {
     'expected_outcome': 'Find multiple RNTO arguments, decode each, and submit the one that is the flag',
     'challenge_type': 'network',
     'order_num': 25,
-    'points': 100,
+    'points': 120,
     'category_slug': 'ftp',
     'order_in_category': 3,
 }

@@ -13,7 +13,7 @@ challenge = {
     'expected_outcome': 'Understand DNS TXT RDATA format (multiple chunks) and reassemble the flag',
     'challenge_type': 'network',
     'order_num': 19,
-    'points': 100,
+    'points': 120,
     'category_slug': 'dns',
     'order_in_category': 3,
 }

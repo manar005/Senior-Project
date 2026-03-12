@@ -11,7 +11,7 @@ challenge = {
     'expected_outcome': 'Understand FTP passive mode and correlate control vs data connections',
     'challenge_type': 'network',
     'order_num': 23,
-    'points': 100,
+    'points': 130,
     'category_slug': 'ftp',
     'order_in_category': 4,
 }

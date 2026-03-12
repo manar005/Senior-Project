@@ -13,7 +13,7 @@ challenge = {
     'expected_outcome': 'Learn to read DNS CNAME records and decode the flag from the canonical name',
     'challenge_type': 'network',
     'order_num': 20,
-    'points': 100,
+    'points': 130,
     'category_slug': 'dns',
     'order_in_category': 4,
 }

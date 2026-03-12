@@ -73,6 +73,21 @@ CHALLENGE_FILE_ORDER = [
     ('ftp', 'challenge_23'),
     ('ftp', 'challenge_24'),
     ('ftp', 'challenge_25'),
+    ('icmp', 'challenge_26'),
+    ('icmp', 'challenge_27'),
+    ('icmp', 'challenge_28'),
+    ('icmp', 'challenge_29'),
+    ('smtp', 'challenge_30'),
+    ('smtp', 'challenge_31'),
+    ('smtp', 'challenge_32'),
+    ('smtp', 'challenge_33'),
+    ('tls', 'challenge_34'),
+    ('tls', 'challenge_35'),
+    ('tls', 'challenge_36'),
+    ('tls', 'challenge_37'),
+    ('forensics', 'challenge_38'),
+    ('forensics', 'challenge_39'),
+    ('forensics', 'challenge_40'),
 ]
 
 
@@ -113,21 +128,21 @@ def sync():
             cur = conn.execute('''
                 UPDATE challenges
                 SET title = ?, description = ?, hint = ?, flag = ?, expected_outcome = ?,
-                    challenge_type = ?, challenge_data = ?, order_num = ?, category_id = ?
+                    challenge_type = ?, challenge_data = ?, order_num = ?, category_id = ?, points = ?
                 WHERE id = ?
             ''', (
                 c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
-                c['challenge_type'], c.get('challenge_data'), order_in_cat, category_id, i
+                c['challenge_type'], c.get('challenge_data'), order_in_cat, category_id, c.get('points', 100), i
             ))
         else:
             cur = conn.execute('''
                 UPDATE challenges
                 SET title = ?, description = ?, hint = ?, flag = ?, expected_outcome = ?,
-                    challenge_type = ?, challenge_data = ?, order_num = ?
+                    challenge_type = ?, challenge_data = ?, order_num = ?, points = ?
                 WHERE id = ?
             ''', (
                 c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
-                c['challenge_type'], c.get('challenge_data'), order_in_cat, i
+                c['challenge_type'], c.get('challenge_data'), order_in_cat, c.get('points', 100), i
             ))
         if cur.rowcount > 0:
             updated += 1

@@ -592,8 +592,20 @@ def category_challenges(category_id):
     user_badges = db_queries.get_user_badges(conn, session['user_id'])
     total_badges = db_queries.get_total_badges_count(conn)
     total_points = db_queries.get_user_total_points(conn, session['user_id'])
-    conn.close()
     completed_in_category = sum(1 for c in challenges if c['id'] in completed_ids)
+    category_completed = (completed_in_category == len(challenges)) if challenges else False
+    # Next/previous protocol: categories are ordered by order_num
+    categories_ordered = db_queries.get_all_categories(conn)
+    next_category = None
+    previous_category = None
+    for i, c in enumerate(categories_ordered):
+        if c['id'] == cat['id']:
+            if i + 1 < len(categories_ordered):
+                next_category = categories_ordered[i + 1]
+            if i > 0:
+                previous_category = categories_ordered[i - 1]
+            break
+    conn.close()
     return render_template(
         'category_challenges.html',
         category=cat,
@@ -605,7 +617,10 @@ def category_challenges(category_id):
         all_challenges=all_challenges,
         user_badges=user_badges,
         total_badges=total_badges,
-        total_points=total_points
+        total_points=total_points,
+        category_completed=category_completed,
+        next_category=next_category,
+        previous_category=previous_category
     )
 
 
