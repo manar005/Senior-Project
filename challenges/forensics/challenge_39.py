@@ -1,13 +1,13 @@
 """
-Challenge 39: Forensics (4/5)
+Challenge 39: Staged C2
 Category: Forensics
 """
 challenge = {
-    'title': 'Timeline Reconstruction',
-    'description': 'From this capture, determine the exact time (UTC) of the first packet that matches a given filter. The flag is TIMESTAMP_YYYYMMDD_HHMMSS.',
-    'hint': 'Use Wireshark to filter the relevant traffic. Sort by time and note the first packet timestamp. Convert to UTC if needed. Submit as TIMESTAMP_YYYYMMDD_HHMMSS.',
-    'flag': 'TIMESTAMP_FLAG',
-    'expected_outcome': 'Extract and format a packet timestamp from a capture',
+    'title': 'Staged C2 (DNS then HTTP)',
+    'description': ('Multiple HTTP beacon exchanges appear throughout the capture, each returning similar response bodies. Examine the HTTP sessions carefully, trace the meaningful response, recover the encrypted value it contains, and submit the decoded ASCII string as the flag.'),
+    'hint': ('Inspect HTTP responses for session values in their body. Decode the Base64-encoded value and submit the resulting ASCII string as the flag.'),
+    'flag': 'C2_BEACON',
+    'expected_outcome': 'Stage DNS with HTTP, then decode an encoded session value to recover the credential',
     'challenge_type': 'network',
     'order_num': 39,
     'points': 130,

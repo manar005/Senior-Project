@@ -1,13 +1,13 @@
 """
-Challenge 40: Forensics (5/5)
+Challenge 40: Multi-Protocol Reconstruction (DNS + HTTP)
 Category: Forensics
 """
 challenge = {
-    'title': 'Multi-Protocol Correlation',
-    'description': 'This capture contains multiple protocols (e.g. DNS, HTTP, TCP). A single secret was split across them. Reconstruct the full flag by combining the pieces in the correct order.',
-    'hint': 'Identify each protocol stream that carries a piece of the flag. Note the order of events (time order or stream index). Concatenate the pieces to form the complete flag.',
-    'flag': 'FORENSICS_FINAL',
-    'expected_outcome': 'Correlate multiple protocol streams to reconstruct a single secret',
+    'title': 'Multi-Protocol Reconstruction',
+    'description': 'The flag is split across DNS and HTTP on loopback, in chronological order. Part A is the first label of the queried DNS name. Part B completes the flag in the HTTP response body. Concatenate Part A + Part B to get the flag.',
+    'hint': 'Filter dns for FORENSICS.reconstruct.local and take the first label. Then filter http and read the 200 body for _MULTI.',
+    'flag': 'FORENSICS_MULTI',
+    'expected_outcome': 'Correlate a DNS query label with HTTP application data to rebuild one submission string',
     'challenge_type': 'network',
     'order_num': 40,
     'points': 150,

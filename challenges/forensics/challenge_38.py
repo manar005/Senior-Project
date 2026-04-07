@@ -1,13 +1,13 @@
 """
-Challenge 38: Forensics (3/5)
+Challenge 38: ICMP Payload Exfiltration
 Category: Forensics
 """
 challenge = {
-    'title': 'Suspicious Domain',
-    'description': 'This capture contains DNS or HTTP traffic to several domains. One domain is used for data exfiltration. Find that domain and submit it as the flag.',
-    'hint': 'Filter for DNS or HTTP. Look for unusual or long domain names, or domains that appear only once. The exfiltration domain often has encoded data in the name.',
-    'flag': 'EXFIL_DOMAIN',
-    'expected_outcome': 'Identify a suspicious or exfiltration-related domain from traffic',
+    'title': 'ICMP Payload Exfiltration',
+    'description': 'Sensitive data was split across several ICMP Echo Request payloads on loopback. Reconstruct the full secret by reading the hexadecimal data for each exfil packet in chronological order and concatenating the ASCII fragments.',
+    'hint': 'Click on each ICMP packet and inspect the hexadecimal data in the lower-right pane. Ignore noise strings; the exfil uses three fragments that form one flag when joined in order.',
+    'flag': 'ICMP_EXFIL_38',
+    'expected_outcome': 'Extract ASCII from ICMP echo payloads and reassemble a multi-packet exfiltration string',
     'challenge_type': 'network',
     'order_num': 38,
     'points': 120,

@@ -2,7 +2,7 @@
 
 Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save files under `static/pcaps/` as `challenge_XX.pcapng` (e.g. `challenge_01.pcapng`).
 
-**Quick reference:** Run all scripts from the **project root**: `python3 scripts/<script_name>.py` (or `python` on Windows). Start Wireshark capture on loopback **before** running the script; stop and save as `static/pcaps/challenge_XX.pcapng`.
+**Quick reference:** Run all scripts from the **project root**: `python3 scripts/<script_name>.py` (or `python` on Windows). Most scripts expect you to start a Wireshark capture on loopback **before** running the script, then save as `static/pcaps/challenge_XX.pcapng`. **Exceptions:** `forensics_challenge38_icmp_exfil.py`, `forensics_challenge39_http_beacon.py`, and `forensics_challenge40_multiprotocol.py` use Scapy and **write** `static/pcaps/challenge_{38,39,40}.pcapng` directly (requires `pip install scapy`).
 
 ### Step-by-step index
 
@@ -19,6 +19,9 @@ Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save
 | 9 | Image Flag | `tcp_fragmented_image_challenge09.py` |
 | 10 | DNS Exfiltration | `dns_exfil_challenge10.py` |
 | 11 | HTTP Login Brute Force | `http_bruteforce_challenge11.py` |
+| 38 | Forensics ICMP exfil | `forensics_challenge38_icmp_exfil.py` (scapy → pcap) |
+| 39 | Forensics DNS → HTTP staging | `forensics_challenge39_http_beacon.py` (scapy → pcap) |
+| 40 | Forensics DNS + HTTP (2-part) | `forensics_challenge40_multiprotocol.py` (scapy → pcap) |
 | 12 | HTTP Status Code | `http_status_challenge12.py` |
 | 13 | HTTP Request Method | `http_method_challenge13.py` |
 | 14 | HTTP Cookie | `http_cookie_challenge14.py` |
@@ -306,6 +309,66 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 - Inspect the request bodies (e.g., using the **HTTP** tab or raw payload) to see the username and password fields, and compare them with the server responses.
 - Most attempts get a `401` response with the body `"Invalid credentials."`. One attempt (in the middle of the sequence, with two more failed attempts after it) gets `200 OK` with `"Login successful. Welcome, operator!"`.
 - The flag is the password value in that successful request, formatted exactly as seen: **`p@ssw0rd!`**.
+
+---
+
+## Challenge 38 – Forensics (ICMP payload exfiltration)
+
+**Flag (submission):** `ICMP_EXFIL_38` (concatenate ICMP Echo data fragments in time order).
+
+### Steps
+
+1. **Requires** `scapy` (`pip install scapy` or install project requirements).
+2. From the project root, generate the capture (writes **`static/pcaps/challenge_38.pcapng`** directly):
+   ```bash
+   python scripts/forensics_challenge38_icmp_exfil.py
+   ```
+
+### What to check
+
+- Filter **`icmp`** (or **`icmp.type == 8`**). Ignore noise payloads; read the ICMP **data** field for the three exfil fragments and concatenate in **chronological order** to form **`ICMP_EXFIL_38`**.
+
+---
+
+## Challenge 39 – Forensics (DNS staging → HTTP C2)
+
+**Flag (submission):** `C2_BEACON` (Base64-decode the **`session=`** value from the **staged** HTTP **200** body—the value on the wire is **not** plaintext).
+
+### Steps
+
+1. **Requires** `scapy`.
+2. From the project root:
+   ```bash
+   python scripts/forensics_challenge39_http_beacon.py
+   ```
+   Writes **`static/pcaps/challenge_39.pcapng`**.
+
+### What to check
+
+- **DNS:** A query for **`staging.c2-sim.local`** appears before the real HTTP.
+- **Decoys:** HTTP to **`metrics.telemetry.io`** with **`session=<Base64>`** (no matching DNS for that host); orphan DNS for **`updates.badcdn.local`** and **`collector.telemetry.net`** without follow-up HTTP here.
+- **Real:** **`Host: staging.c2-sim.local`**, body **`session=QzJfQkVBQ09O`** (Base64 of **`C2_BEACON`**). Decode and submit **`C2_BEACON`**.
+
+---
+
+## Challenge 40 – Forensics (DNS + HTTP, two parts)
+
+**Flag (submission):** `FORENSICS_MULTI` = **`FORENSICS`** (DNS first label) + **`_MULTI`** (HTTP response body prefix on **`capstone.local`**). Body may include **`verify=len:15`** on a second line.
+
+### Steps
+
+1. **Requires** `scapy`.
+2. From the project root:
+   ```bash
+   python scripts/forensics_challenge40_multiprotocol.py
+   ```
+   Writes **`static/pcaps/challenge_40.pcapng`**.
+
+### What to check
+
+- **DNS:** Query **`FORENSICS.reconstruct.local`** → first label **`FORENSICS`**. Decoy **`noise.placeholder.net`**.
+- **HTTP (8088):** Decoy **`wrong.local`**. Real **`capstone.local`** **`GET /flag`** — response body starts with **`_MULTI`**, then **`verify=len:15`**.
+- Concatenate: **`FORENSICS`** + **`_MULTI`** = **`FORENSICS_MULTI`**.
 
 ---
 
