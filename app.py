@@ -270,22 +270,50 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
-    # Insert badges if they don't exist
-    if db_queries.get_badge_count(conn) == 0:
-        badges_data = [
-            ('First Steps', 'Complete your first network challenge', '🎯', 'challenges_completed', 1),
-            ('Getting Started', 'Complete 3 network challenges', '🌟', 'challenges_completed', 3),
-            ('Halfway Hero', 'Complete 5 network challenges', '🏆', 'challenges_completed', 5),
-            ('Network Expert', 'Complete 7 network challenges', '💎', 'challenges_completed', 7),
-            ('Network Master', 'Complete all 10 network challenges', '🏅', 'challenges_completed', 10),
-            ('Quick Learner', 'Complete 3 challenges in one day', '⚡', 'daily_challenges', 3),
-            ('Dedicated', 'Complete 5 challenges in one day', '🔥', 'daily_challenges', 5)
-        ]
-        conn.executemany('''
-            INSERT INTO badges (name, description, icon, requirement_type, requirement_value)
-            VALUES (?, ?, ?, ?, ?)
-        ''', badges_data)
-        conn.commit()
+    # Keep badge requirements in sync with the actual challenge count.
+    # This also updates existing DBs where old hardcoded thresholds were used.
+    total_challenges = len(get_network_challenges())
+
+    def pct_threshold(pct):
+        # Use rounded milestones while keeping a strictly increasing sequence.
+        return max(1, round(total_challenges * pct))
+
+    completion_thresholds = [
+        1,
+        pct_threshold(0.25),
+        pct_threshold(0.50),
+        pct_threshold(0.75),
+        total_challenges,
+    ]
+    for i in range(1, len(completion_thresholds)):
+        if completion_thresholds[i] <= completion_thresholds[i - 1]:
+            completion_thresholds[i] = completion_thresholds[i - 1] + 1
+    completion_thresholds[-1] = total_challenges
+
+    badges_data = [
+        ('First Steps', 'Complete your first network challenge', '🎯', 'challenges_completed', completion_thresholds[0]),
+        ('Getting Started', f'Complete {completion_thresholds[1]} network challenges', '🌟', 'challenges_completed', completion_thresholds[1]),
+        ('Halfway Hero', f'Complete {completion_thresholds[2]} network challenges', '🏆', 'challenges_completed', completion_thresholds[2]),
+        ('Network Expert', f'Complete {completion_thresholds[3]} network challenges', '💎', 'challenges_completed', completion_thresholds[3]),
+        ('Network Master', f'Complete all {total_challenges} network challenges', '🏅', 'challenges_completed', completion_thresholds[4]),
+        ('Quick Learner', 'Complete 3 challenges in one day', '⚡', 'daily_challenges', 3),
+        ('Dedicated', 'Complete 5 challenges in one day', '🔥', 'daily_challenges', 5)
+    ]
+
+    for badge in badges_data:
+        existing = conn.execute('SELECT id FROM badges WHERE name = ?', (badge[0],)).fetchone()
+        if existing:
+            conn.execute('''
+                UPDATE badges
+                SET description = ?, icon = ?, requirement_type = ?, requirement_value = ?
+                WHERE id = ?
+            ''', (badge[1], badge[2], badge[3], badge[4], existing['id']))
+        else:
+            conn.execute('''
+                INSERT INTO badges (name, description, icon, requirement_type, requirement_value)
+                VALUES (?, ?, ?, ?, ?)
+            ''', badge)
+    conn.commit()
     
     # Insert challenges if they don't exist
     if db_queries.get_challenge_count(conn) == 0:
