@@ -84,9 +84,109 @@ def complete_challenge(conn, user_id, challenge_id, used_hint=False, points_earn
     return False
 
 def get_user_total_points(conn, user_id):
-    """Get total points earned by user"""
+    """Get total points earned by user (network challenges + completed AI challenges)."""
     row = conn.execute('SELECT COALESCE(SUM(points_earned), 0) FROM user_progress WHERE user_id = ?', (user_id,)).fetchone()
-    return row[0] if row else 0
+    base = row[0] if row else 0
+    try:
+        ai_row = conn.execute(
+            'SELECT COALESCE(SUM(awarded_points), 0) FROM ai_challenges WHERE user_id = ? AND completed = 1',
+            (user_id,),
+        ).fetchone()
+        base += ai_row[0] if ai_row else 0
+    except sqlite3.OperationalError:
+        pass
+    return base
+
+
+# --- AI-generated challenges ---
+
+
+def insert_ai_challenge(
+    conn,
+    user_id,
+    title,
+    description,
+    hint,
+    outcome,
+    points,
+    display_flag,
+    answer_flag,
+    protocol,
+    difficulty,
+    pcap_path,
+    original_prompt,
+):
+    """Insert a new AI challenge row. Returns new row id."""
+    cur = conn.execute(
+        '''
+        INSERT INTO ai_challenges (
+            user_id, title, description, hint, outcome, points, flag, display_flag, answer_flag,
+            protocol, difficulty, pcap_path, original_prompt,
+            hint_used, completed, awarded_points
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+        ''',
+        (
+            user_id,
+            title,
+            description,
+            hint,
+            outcome,
+            points,
+            display_flag,
+            display_flag,
+            answer_flag,
+            protocol,
+            difficulty,
+            pcap_path,
+            original_prompt,
+        ),
+    )
+    conn.commit()
+    return cur.lastrowid
+
+
+def get_ai_challenge_for_user(conn, ai_id, user_id):
+    """Return ai_challenges row if it belongs to user."""
+    return conn.execute(
+        'SELECT * FROM ai_challenges WHERE id = ? AND user_id = ?',
+        (ai_id, user_id),
+    ).fetchone()
+
+
+def mark_ai_challenge_hint_used(conn, ai_id, user_id):
+    """Set hint_used=1 for an incomplete challenge owned by user."""
+    conn.execute(
+        'UPDATE ai_challenges SET hint_used = 1 WHERE id = ? AND user_id = ? AND completed = 0',
+        (ai_id, user_id),
+    )
+    conn.commit()
+
+
+def complete_ai_challenge(conn, user_id, ai_id, awarded_points):
+    """
+    Mark AI challenge completed with awarded points. No-op if already completed.
+    Returns True if a row was updated.
+    """
+    cur = conn.execute(
+        '''
+        UPDATE ai_challenges SET completed = 1, awarded_points = ?
+        WHERE id = ? AND user_id = ? AND completed = 0
+        ''',
+        (awarded_points, ai_id, user_id),
+    )
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def list_ai_challenges_for_user(conn, user_id, limit=50):
+    """Recent AI challenges for dashboard/history (optional)."""
+    return conn.execute(
+        '''
+        SELECT id, title, protocol, difficulty, points, completed, awarded_points, hint_used, created_at
+        FROM ai_challenges WHERE user_id = ? ORDER BY id DESC LIMIT ?
+        ''',
+        (user_id, limit),
+    ).fetchall()
 
 def get_user_badges(conn, user_id):
     """Get user's earned badges"""

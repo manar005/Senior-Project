@@ -1884,6 +1884,32 @@ body::before {
     margin-top: 1.5rem;
 }
 
+.cta-wrap-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.ai-prompt-input {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.inline-code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.9em;
+    color: var(--accent-soft, #7dd3fc);
+}
+
+.ai-challenge-workspace .hint-content {
+    white-space: pre-wrap;
+    margin-top: 0.75rem;
+}
+
 .home-stats {
     display: flex;
     justify-content: center;

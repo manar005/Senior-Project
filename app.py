@@ -1,7 +1,44 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
+import base64
+import binascii
+import codecs
+
+_APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load_env_file(path):
+    """Set os.environ from KEY=value lines (no extra dependency). utf-8-sig strips BOM."""
+    try:
+        with open(path, "r", encoding="utf-8-sig") as envf:
+            for raw in envf:
+                line = raw.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key = key.strip()
+                val = val.strip()
+                if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+                    val = val[1:-1]
+                if key:
+                    os.environ[key] = val
+    except OSError:
+        pass
+
+
+_env_path = os.path.join(_APP_ROOT, ".env")
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(_env_path)
+except ImportError:
+    pass
+_load_env_file(_env_path)
+
 from functools import wraps
 import secrets
 from datetime import datetime, timedelta
@@ -10,6 +47,9 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 from challenges import get_network_challenges
 import db_queries
+from ai_challenge_utils import extract_flag_inner_value, trim_only
+from grok_challenge_client import call_grok_for_challenge
+from pcap_from_ai_plan import build_packets_from_plan, write_pcap_with_tshark, make_ai_pcap_filename
 
 # Protocol/category names (8 categories; TCP has 3 challenges under it)
 PROTOCOL_NAMES = [
@@ -78,6 +118,26 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
 DATABASE = 'thaghrah.db'
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+PCAPS_DIR = os.path.join(STATIC_DIR, 'pcaps')
+
+
+def _resolve_ai_pcap_path(rel_path):
+    """Ensure AI PCAP download stays under static/pcaps/. Returns absolute path or None."""
+    if not rel_path or not isinstance(rel_path, str):
+        return None
+    if '..' in rel_path or rel_path.startswith(('/', '\\')):
+        return None
+    rel_path = rel_path.replace('\\', '/').lstrip('/')
+    if not rel_path.startswith('pcaps/'):
+        return None
+    base = os.path.abspath(PCAPS_DIR)
+    full = os.path.abspath(os.path.join(STATIC_DIR, rel_path))
+    if not full.startswith(base + os.sep) and full != base:
+        return None
+    if not os.path.isfile(full):
+        return None
+    return full
 
 def validate_password(password):
     """Validate password: at least 8 chars, one uppercase letter, one special character."""
@@ -168,6 +228,58 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+
+    # Migration: AI-generated challenges
+    try:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ai_challenges (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                hint TEXT NOT NULL,
+                outcome TEXT NOT NULL,
+                points INTEGER NOT NULL DEFAULT 100,
+                flag TEXT NOT NULL,
+                display_flag TEXT,
+                answer_flag TEXT,
+                protocol TEXT,
+                difficulty TEXT,
+                pcap_path TEXT NOT NULL,
+                original_prompt TEXT NOT NULL,
+                hint_used INTEGER NOT NULL DEFAULT 0,
+                completed INTEGER NOT NULL DEFAULT 0,
+                awarded_points INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ''')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+    for sql in [
+        'ALTER TABLE ai_challenges ADD COLUMN display_flag TEXT',
+        'ALTER TABLE ai_challenges ADD COLUMN answer_flag TEXT',
+    ]:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+    try:
+        rows = conn.execute('SELECT id, flag, display_flag, answer_flag FROM ai_challenges').fetchall()
+        for row in rows:
+            display_flag = row['display_flag'] if row['display_flag'] else row['flag']
+            answer_flag = row['answer_flag'] if row['answer_flag'] else extract_flag_inner_value(row['flag'])
+            if not answer_flag:
+                answer_flag = row['flag']
+            conn.execute(
+                'UPDATE ai_challenges SET display_flag = ?, answer_flag = ? WHERE id = ?',
+                (display_flag, answer_flag, row['id']),
+            )
         conn.commit()
     except sqlite3.OperationalError:
         pass
@@ -744,6 +856,344 @@ def submit_flag():
         return jsonify({'success': True, 'message': message, 'new_badges': new_badges, 'points_earned': points_earned})
     conn.close()
     return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
+
+
+@app.route('/challenges/ai')
+@login_required
+def ai_challenge_lab():
+    """Page for AI-generated packet challenges."""
+    return render_template('ai_challenge.html')
+
+
+def _ai_filter_for_protocol(protocol: str) -> str:
+    p = (protocol or "").strip().upper()
+    mapping = {
+        'HTTP': 'http',
+        'TCP': 'tcp',
+        'DNS': 'dns',
+        'FTP': 'ftp',
+        'ICMP': 'icmp',
+        'SMTP': 'smtp',
+        'TLS': 'tls',
+        'FORENSICS': 'frame contains "part="',
+    }
+    return mapping.get(p, 'tcp')
+
+
+def _build_ai_hint(protocol: str, fragmentation: bool, encoding: str) -> str:
+    filt = _ai_filter_for_protocol(protocol)
+    steps = [f'1. In Wireshark, apply the filter `{filt}` and inspect suspicious packets/payload fields.']
+    if fragmentation:
+        steps.append('2. Find packets containing `part=1`, `part=2`, `part=3`, etc., and copy each `data=` fragment.')
+        steps.append('3. Rebuild the value by joining fragments in ascending part order.')
+        decode_step_index = 4
+    else:
+        steps.append('2. Locate the payload/header line that contains `FLAG = "..."` and copy only the value in quotes.')
+        decode_step_index = 3
+    if (encoding or 'none').lower() != 'none':
+        steps.append(f'{decode_step_index}. Decode the extracted value using `{encoding}`.')
+        steps.append(f'{decode_step_index + 1}. Submit only the final decoded plain value (no `FLAG =`, no quotes).')
+    else:
+        steps.append(f'{decode_step_index}. Submit only the final plain value (no `FLAG =`, no quotes).')
+    return '\n'.join(steps)
+
+
+def _requested_encoding_from_prompt(prompt: str):
+    low = (prompt or '').lower()
+    if 'base64' in low:
+        return 'base64'
+    if 'rot13' in low:
+        return 'rot13'
+    if 'hex' in low or 'hexadecimal' in low:
+        return 'hex'
+    if 'xor' in low:
+        return 'xor'
+    if any(k in low for k in ('encoding', 'encoded', 'encrypt', 'encrypted', 'obfuscate', 'obfuscated')):
+        return 'base64'
+    return None
+
+
+def _requested_fragmentation_from_prompt(prompt: str):
+    low = (prompt or '').lower()
+    positive = (
+        'fragment', 'fragmentation', 'fragmented', 'split into parts',
+        'split packet', 'chunked', 'chunks', 'reassemble'
+    )
+    negative = (
+        'no fragmentation', 'without fragmentation', 'not fragmented',
+        'single packet', 'one packet'
+    )
+    if any(k in low for k in negative):
+        return False
+    if any(k in low for k in positive):
+        return True
+    return None
+
+
+def _encode_with_encoding(value: str, encoding: str):
+    value = (value or '').strip()
+    enc = (encoding or 'none').strip().lower()
+    if not value or enc == 'none':
+        return value
+    if enc == 'base64':
+        return base64.b64encode(value.encode('utf-8')).decode('utf-8')
+    if enc == 'hex':
+        return value.encode('utf-8').hex()
+    if enc == 'rot13':
+        return codecs.encode(value, 'rot_13')
+    # Keep custom/xor unchanged if we do not have deterministic encoder here.
+    return value
+
+
+def _decode_with_encoding(value: str, encoding: str):
+    value = (value or '').strip()
+    enc = (encoding or 'none').strip().lower()
+    if not value or enc == 'none':
+        return None
+    try:
+        if enc == 'base64':
+            padded = value + ('=' * ((4 - len(value) % 4) % 4))
+            return base64.b64decode(padded.encode('utf-8'), validate=False).decode('utf-8', errors='strict').strip()
+        if enc == 'hex':
+            return bytes.fromhex(value).decode('utf-8', errors='strict').strip()
+        if enc == 'rot13':
+            return codecs.decode(value, 'rot_13').strip()
+    except (binascii.Error, ValueError, UnicodeDecodeError):
+        return None
+    return None
+
+
+@app.route('/challenges/ai/generate', methods=['POST'])
+@login_required
+def ai_challenge_generate():
+    data = request.get_json(silent=True) or {}
+    prompt = (data.get('prompt') or '').strip()
+    if not prompt:
+        return jsonify({'success': False, 'message': 'Please enter a prompt.'}), 400
+
+    ok, err_msg, payload = call_grok_for_challenge(prompt)
+    if not ok or not payload:
+        return jsonify({'success': False, 'message': err_msg or 'Generation failed.'}), 400
+
+    display_flag = payload.get('display_flag') or payload.get('flag')
+    answer_flag = trim_only(payload.get('answer_flag'))
+    display_inner = extract_flag_inner_value(display_flag or '')
+    if not display_inner or not answer_flag:
+        return jsonify({'success': False, 'message': 'Could not build a valid challenge. Try again.'}), 400
+    encoding = str(payload.get('encoding') or 'none').strip().lower() or 'none'
+    requested_encoding = _requested_encoding_from_prompt(prompt)
+    requested_fragmentation = _requested_fragmentation_from_prompt(prompt)
+    frag_val = payload.get('fragmentation')
+    if isinstance(frag_val, str):
+        fragmentation = frag_val.strip().lower() in ('1', 'true', 'yes', 'y')
+    else:
+        fragmentation = bool(frag_val)
+    try:
+        fragment_count = int(payload.get('fragment_count') or (4 if fragmentation else 1))
+    except (TypeError, ValueError):
+        fragment_count = 4 if fragmentation else 1
+    # Respect user intent: encoding-only prompts should not become fragmented unless
+    # fragmentation is explicitly requested in the prompt.
+    if requested_fragmentation is not None:
+        fragmentation = requested_fragmentation
+    elif requested_encoding and not fragmentation:
+        # Keep as-is: encoded non-fragmented challenge is valid.
+        pass
+    elif requested_encoding and fragmentation:
+        fragmentation = False
+    if not fragmentation:
+        fragment_count = 1
+    if encoding != 'none':
+        decoded_from_display = _decode_with_encoding(display_inner, encoding)
+        decoded_from_answer = _decode_with_encoding(answer_flag, encoding)
+        # Preferred model: display is encoded artifact, answer is decoded plain value.
+        if decoded_from_display:
+            answer_flag = decoded_from_display
+        # Recover common inverted model output (answer provided encoded, display plain-ish).
+        elif decoded_from_answer:
+            display_flag = f'FLAG = "{answer_flag}"'
+            display_inner = answer_flag
+            answer_flag = decoded_from_answer
+        if display_inner == answer_flag:
+            return jsonify({'success': False, 'message': 'Generated challenge was malformed. Please try again.'}), 400
+    elif requested_encoding:
+        # Enforce prompt intent: if user asked for encoding, make this challenge encoded.
+        encoding = requested_encoding
+        encoded_value = _encode_with_encoding(answer_flag, encoding)
+        if encoded_value and encoded_value != answer_flag:
+            display_flag = f'FLAG = "{encoded_value}"'
+            display_inner = encoded_value
+
+    # Canonicalize display/answer contract to keep fragmented and non-fragmented challenges solvable.
+    if encoding == 'none':
+        display_inner = answer_flag
+    else:
+        encoded_value = _encode_with_encoding(answer_flag, encoding)
+        if encoded_value:
+            display_inner = encoded_value
+    display_flag = f'FLAG = "{display_inner}"'
+
+    try:
+        packets = build_packets_from_plan(
+            payload['pcap_plan'],
+            display_flag,
+            answer_flag,
+            fragmentation=fragmentation,
+            fragment_count=fragment_count,
+        )
+    except Exception:
+        return jsonify({'success': False, 'message': 'Could not build the capture file. Try again.'}), 500
+
+    hint = _build_ai_hint(payload['protocol'], fragmentation, encoding)
+
+    fname = make_ai_pcap_filename(session['user_id'])
+    rel_pcap = f'pcaps/{fname}'
+    abs_pcap = os.path.join(STATIC_DIR, rel_pcap)
+    try:
+        write_pcap_with_tshark(packets, abs_pcap)
+    except Exception:
+        return jsonify({'success': False, 'message': 'Could not save the capture file. Try again.'}), 500
+
+    conn = get_db()
+    try:
+        new_id = db_queries.insert_ai_challenge(
+            conn,
+            session['user_id'],
+            payload['title'],
+            payload['description'],
+            hint,
+            payload['outcome'],
+            payload['points'],
+            display_flag,
+            answer_flag,
+            payload['protocol'],
+            payload['difficulty'],
+            rel_pcap,
+            prompt[:4000],
+        )
+    except Exception:
+        conn.close()
+        try:
+            os.unlink(abs_pcap)
+        except OSError:
+            pass
+        return jsonify({'success': False, 'message': 'Could not save the challenge. Try again.'}), 500
+    conn.close()
+
+    return jsonify(
+        {
+            'success': True,
+            'challenge': {
+                'id': new_id,
+                'title': payload['title'],
+                'description': payload['description'],
+                'outcome': payload['outcome'],
+                'points': payload['points'],
+                'protocol': payload['protocol'],
+                'difficulty': payload['difficulty'],
+                'encoding': encoding,
+                'fragmentation': fragmentation,
+                'download_url': url_for('ai_challenge_download', ai_id=new_id),
+            },
+        }
+    )
+
+
+@app.route('/challenges/ai/hint', methods=['POST'])
+@login_required
+def ai_challenge_hint():
+    data = request.get_json(silent=True) or {}
+    try:
+        ai_id = int(data.get('ai_challenge_id'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid challenge.'}), 400
+
+    conn = get_db()
+    row = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
+    if not row:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Challenge not found.'}), 404
+    if row['completed']:
+        conn.close()
+        return jsonify({'success': False, 'message': 'This challenge is already completed.'}), 400
+
+    db_queries.mark_ai_challenge_hint_used(conn, ai_id, session['user_id'])
+    row = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
+    conn.close()
+    return jsonify({'success': True, 'hint': row['hint']})
+
+
+@app.route('/challenges/ai/submit-flag', methods=['POST'])
+@login_required
+def ai_challenge_submit_flag():
+    data = request.get_json(silent=True) or {}
+    try:
+        ai_id = int(data.get('ai_challenge_id'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid challenge.'}), 400
+
+    flag = data.get('flag')
+    if flag is None or not str(flag).strip():
+        return jsonify({'success': False, 'message': 'Please enter the flag value.'}), 400
+
+    conn = get_db()
+    row = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
+    if not row:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Challenge not found.'}), 404
+    if row['completed']:
+        conn.close()
+        return jsonify({'success': False, 'message': 'You already solved this challenge.'})
+
+    submitted = trim_only(flag)
+    answer_flag = trim_only(row['answer_flag']) if 'answer_flag' in row.keys() else ''
+    if not answer_flag:
+        answer_flag = extract_flag_inner_value(row['flag']) or trim_only(row['flag'])
+
+    if submitted != answer_flag:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
+
+    base_points = int(row['points']) if row['points'] else 100
+    used_hint = bool(row['hint_used'])
+    awarded = max(0, base_points // 2) if used_hint else base_points
+
+    if db_queries.complete_ai_challenge(conn, session['user_id'], ai_id, awarded):
+        conn.close()
+        return jsonify(
+            {
+                'success': True,
+                'message': f'Correct! +{awarded} points.',
+                'points_earned': awarded,
+                'used_hint': used_hint,
+            }
+        )
+    row2 = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
+    conn.close()
+    if row2 and row2['completed']:
+        return jsonify(
+            {
+                'success': True,
+                'message': 'Already solved — points were awarded earlier.',
+                'points_earned': row2['awarded_points'],
+                'used_hint': bool(row2['hint_used']),
+            }
+        )
+    return jsonify({'success': False, 'message': 'Could not record completion. Try again.'})
+
+
+@app.route('/challenges/ai/download/<int:ai_id>')
+@login_required
+def ai_challenge_download(ai_id):
+    conn = get_db()
+    row = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
+    conn.close()
+    if not row:
+        abort(404)
+    abs_path = _resolve_ai_pcap_path(row['pcap_path'])
+    if not abs_path:
+        abort(404)
+    return send_file(abs_path, as_attachment=True, download_name=os.path.basename(abs_path))
 
 if __name__ == '__main__':
     init_db()

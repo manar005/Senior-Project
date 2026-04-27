@@ -59,3 +59,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Scapy XDG cache (AI PCAP builder)
+.scapy_xdg_cache/

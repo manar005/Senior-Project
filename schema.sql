@@ -76,5 +76,28 @@ CREATE TABLE IF NOT EXISTS password_reset_codes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- AI-generated challenges (one row per generated challenge per user)
+CREATE TABLE IF NOT EXISTS ai_challenges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    hint TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    points INTEGER NOT NULL DEFAULT 100,
+    flag TEXT NOT NULL,
+    display_flag TEXT,
+    answer_flag TEXT,
+    protocol TEXT,
+    difficulty TEXT,
+    pcap_path TEXT NOT NULL,
+    original_prompt TEXT NOT NULL,
+    hint_used INTEGER NOT NULL DEFAULT 0,
+    completed INTEGER NOT NULL DEFAULT 0,
+    awarded_points INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- Insert badges only if they don't exist
 -- Note: Badges are inserted via Python code in init_db() to ensure no duplicates

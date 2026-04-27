@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}AI challenge lab — Thaghrah{% endblock %}
+{% block body_class %}theme-cyber app-body{% endblock %}
+
+{% block content %}
+<div class="login-page-galaxy login-page-galaxy--home">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container-over-galaxy">
+        <div class="container cyber-page-shell">
+            <header class="challenge-header-page">
+                <a href="{{ url_for('home') }}" class="back-link">← Home</a>
+                <p class="section-chip">AI lab</p>
+                <h2>AI packet challenge</h2>
+                <p class="selection-subtitle">Describe the scenario you want in plain language. The lab builds a unique PCAP, a learning goal, and a flag you can hunt in Wireshark.</p>
+            </header>
+
+            <article class="challenge-content cyber-panel ai-challenge-panel">
+                <section class="challenge-section">
+                    <h3>Your prompt</h3>
+                    <p class="points-note">Examples: “DNS exfiltration with Base64 chunks, medium difficulty” or “HTTP login brute force in a small office network.”</p>
+                    <div class="form-group">
+                        <textarea id="ai-prompt" class="flag-input ai-prompt-input" rows="4" placeholder="Describe the challenge you want…" maxlength="4000"></textarea>
+                    </div>
+                    <button type="button" id="ai-generate-btn" class="btn btn-primary">Generate challenge</button>
+                    <p id="ai-generate-status" class="flag-result" aria-live="polite"></p>
+                </section>
+
+                <div id="ai-challenge-workspace" class="ai-challenge-workspace" hidden>
+                    <section class="challenge-section">
+                        <h3 id="ai-title"></h3>
+                        <p id="ai-meta" class="points-note"></p>
+                    </section>
+                    <section class="challenge-section">
+                        <h3>What you’ll learn</h3>
+                        <p id="ai-outcome"></p>
+                    </section>
+                    <section class="challenge-section">
+                        <h3>Scenario</h3>
+                        <p id="ai-description"></p>
+                    </section>
+                    <section class="challenge-section">
+                        <h3>Capture file</h3>
+                        <p><a id="ai-download-link" href="#" class="btn btn-secondary" download>Download PCAP</a></p>
+                    </section>
+                    <section class="challenge-section">
+                        <h3>Hint</h3>
+                        <button type="button" id="ai-show-hint-btn" class="btn btn-secondary">Show hint</button>
+                        <p class="points-note">Opening the hint locks in half points for this challenge if your flag is correct.</p>
+                        <div id="ai-hint-box" class="hint-content" style="display: none;"></div>
+                    </section>
+                    <section class="challenge-section">
+                        <h3>Submit flag</h3>
+                        <p class="points-value">Worth <strong id="ai-points-full"></strong> points if you solve without the hint, or <strong id="ai-points-half"></strong> with the hint.</p>
+                        <p class="points-note">The PCAP contains `FLAG = "..."` or fragment parts. Reconstruct/decode if needed, then submit only the final plain value (no quotes, no <code class="inline-code">FLAG =</code>).</p>
+                        <form id="ai-flag-form" class="flag-form">
+                            <input type="hidden" id="ai-challenge-id" value="">
+                            <div class="form-group">
+                                <input type="text" id="ai-flag-input" class="flag-input" placeholder="Flag value only…" autocomplete="off">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit flag</button>
+                        </form>
+                        <div id="ai-flag-result" class="flag-result"></div>
+                    </section>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    const promptEl = document.getElementById('ai-prompt');
+    const genBtn = document.getElementById('ai-generate-btn');
+    const statusEl = document.getElementById('ai-generate-status');
+    const workspace = document.getElementById('ai-challenge-workspace');
+    let hintOpened = false;
+    let currentId = null;
+
+    function setLoading(loading) {
+        genBtn.disabled = loading;
+        genBtn.textContent = loading ? 'Generating…' : 'Generate challenge';
+    }
+
+    genBtn.addEventListener('click', async function() {
+        const prompt = (promptEl.value || '').trim();
+        statusEl.textContent = '';
+        statusEl.className = 'flag-result';
+        if (!prompt) {
+            statusEl.className = 'flag-result error';
+            statusEl.textContent = 'Enter a prompt first.';
+            return;
+        }
+        setLoading(true);
+        try {
+            const res = await fetch('{{ url_for("ai_challenge_generate") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ prompt: prompt })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                statusEl.className = 'flag-result error';
+                statusEl.textContent = data.message || 'Something went wrong.';
+                setLoading(false);
+                return;
+            }
+            const c = data.challenge;
+            currentId = c.id;
+            hintOpened = false;
+            document.getElementById('ai-challenge-id').value = String(c.id);
+            document.getElementById('ai-title').textContent = c.title;
+            const meta = [];
+            if (c.protocol) meta.push(c.protocol);
+            if (c.difficulty) meta.push(c.difficulty);
+            if (c.encoding) meta.push('Encoding: ' + c.encoding);
+            if (c.fragmentation) meta.push('Fragmented');
+            document.getElementById('ai-meta').textContent = meta.join(' · ');
+            document.getElementById('ai-outcome').textContent = c.outcome;
+            document.getElementById('ai-description').textContent = c.description;
+            const pts = c.points || 100;
+            document.getElementById('ai-points-full').textContent = String(pts);
+            document.getElementById('ai-points-half').textContent = String(Math.floor(pts / 2));
+            const dl = document.getElementById('ai-download-link');
+            dl.href = c.download_url;
+            document.getElementById('ai-hint-box').style.display = 'none';
+            document.getElementById('ai-hint-box').textContent = '';
+            document.getElementById('ai-flag-input').value = '';
+            document.getElementById('ai-flag-result').textContent = '';
+            document.getElementById('ai-flag-result').className = 'flag-result';
+            workspace.hidden = false;
+            statusEl.className = 'flag-result success';
+            statusEl.textContent = 'Challenge ready — download the PCAP and start in Wireshark.';
+        } catch (e) {
+            statusEl.className = 'flag-result error';
+            statusEl.textContent = 'Network error. Please try again.';
+        }
+        setLoading(false);
+    });
+
+    document.getElementById('ai-show-hint-btn').addEventListener('click', async function() {
+        if (!currentId || hintOpened) {
+            const box = document.getElementById('ai-hint-box');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            return;
+        }
+        try {
+            const res = await fetch('{{ url_for("ai_challenge_hint") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ai_challenge_id: currentId })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.message || 'Could not load hint.');
+                return;
+            }
+            hintOpened = true;
+            const box = document.getElementById('ai-hint-box');
+            box.textContent = data.hint;
+            box.style.display = 'block';
+        } catch (e) {
+            alert('Could not load hint. Try again.');
+        }
+    });
+
+    let submitting = false;
+    document.getElementById('ai-flag-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (submitting || !currentId) return;
+        const form = e.target;
+        const btn = form.querySelector('button[type="submit"]');
+        const result = document.getElementById('ai-flag-result');
+        const flag = document.getElementById('ai-flag-input').value.trim();
+        if (!flag) {
+            result.className = 'flag-result error';
+            result.textContent = 'Enter the flag value.';
+            return;
+        }
+        submitting = true;
+        btn.disabled = true;
+        result.textContent = '';
+        try {
+            const res = await fetch('{{ url_for("ai_challenge_submit_flag") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ai_challenge_id: currentId, flag: flag })
+            });
+            const data = await res.json();
+            if (data.success) {
+                result.className = 'flag-result success';
+                result.textContent = data.message || 'Correct!';
+                fetch('{{ url_for("api_me") }}', { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        var el = document.getElementById('nav-points');
+                        if (el) el.textContent = d.points + ' pts';
+                    })
+                    .catch(function() {});
+            } else {
+                result.className = 'flag-result error';
+                result.textContent = data.message || 'Incorrect.';
+                btn.disabled = false;
+                submitting = false;
+            }
+        } catch (err) {
+            result.className = 'flag-result error';
+            result.textContent = 'Something went wrong.';
+            btn.disabled = false;
+            submitting = false;
+        }
+    });
+})();
+</script>
+{% endblock %}
