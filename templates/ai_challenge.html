@@ -63,7 +63,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Submit flag</button>
                         </form>
-                        <div id="ai-flag-result" class="flag-result"></div>
+                        <div id="ai-flag-result" class="flag-result" role="status" aria-live="polite"></div>
                     </section>
                 </div>
             </article>
@@ -134,6 +134,8 @@
             document.getElementById('ai-flag-input').value = '';
             document.getElementById('ai-flag-result').textContent = '';
             document.getElementById('ai-flag-result').className = 'flag-result';
+            document.querySelector('#ai-flag-form button[type="submit"]').disabled = false;
+            submitting = false;
             workspace.hidden = false;
             statusEl.className = 'flag-result success';
             statusEl.textContent = 'Challenge ready — download the PCAP and start in Wireshark.';
@@ -172,32 +174,64 @@
     });
 
     let submitting = false;
+    function resolveChallengeId() {
+        if (currentId) return currentId;
+        const raw = (document.getElementById('ai-challenge-id').value || '').trim();
+        if (!raw) return null;
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n > 0) {
+            currentId = n;
+            return currentId;
+        }
+        return null;
+    }
+    function showFlagFeedback(el, className, text) {
+        el.className = 'flag-result ' + className;
+        el.textContent = text;
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     document.getElementById('ai-flag-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        if (submitting || !currentId) return;
         const form = e.target;
         const btn = form.querySelector('button[type="submit"]');
         const result = document.getElementById('ai-flag-result');
+        if (submitting) {
+            showFlagFeedback(result, 'error', 'Still checking your last submission…');
+            return;
+        }
+        const challengeId = resolveChallengeId();
+        if (!challengeId) {
+            showFlagFeedback(result, 'error', 'Generate a challenge first, then submit the flag for that run.');
+            return;
+        }
         const flag = document.getElementById('ai-flag-input').value.trim();
         if (!flag) {
-            result.className = 'flag-result error';
-            result.textContent = 'Enter the flag value.';
+            showFlagFeedback(result, 'error', 'Enter the flag value.');
             return;
         }
         submitting = true;
         btn.disabled = true;
         result.textContent = '';
+        result.className = 'flag-result';
         try {
             const res = await fetch('{{ url_for("ai_challenge_submit_flag") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
-                body: JSON.stringify({ ai_challenge_id: currentId, flag: flag })
+                body: JSON.stringify({ ai_challenge_id: challengeId, flag: flag })
             });
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (parseErr) {
+                showFlagFeedback(result, 'error', 'Server returned an invalid response. Try again or refresh the page.');
+                btn.disabled = false;
+                submitting = false;
+                return;
+            }
             if (data.success) {
-                result.className = 'flag-result success';
-                result.textContent = data.message || 'Correct!';
+                showFlagFeedback(result, 'success', data.message || 'Correct!');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 fetch('{{ url_for("api_me") }}', { credentials: 'same-origin' })
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
@@ -205,15 +239,16 @@
                         if (el) el.textContent = d.points + ' pts';
                     })
                     .catch(function() {});
+                btn.disabled = false;
+                submitting = false;
             } else {
-                result.className = 'flag-result error';
-                result.textContent = data.message || 'Incorrect.';
+                const msg = data.message || (res.ok ? 'Incorrect.' : 'Request failed. Try again.');
+                showFlagFeedback(result, 'error', msg);
                 btn.disabled = false;
                 submitting = false;
             }
         } catch (err) {
-            result.className = 'flag-result error';
-            result.textContent = 'Something went wrong.';
+            showFlagFeedback(result, 'error', 'Network error. Check your connection and try again.');
             btn.disabled = false;
             submitting = false;
         }

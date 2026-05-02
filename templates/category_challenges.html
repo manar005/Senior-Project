@@ -8,6 +8,9 @@
 .protocol-complete-section { text-align: center; margin-top: 2rem; }
 .protocol-complete-buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: center; }
 .protocol-complete-buttons .btn-protocol-nav { display: inline-block; width: auto; min-width: 10rem; padding: 0.65rem 1.75rem; font-size: 1rem; }
+.protocol-pdf-section { margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle, rgba(125, 211, 252, 0.2)); text-align: center; }
+.protocol-pdf-section .protocol-pdf-note { margin: 0 0 1rem; color: var(--text-muted, #94a3b8); font-size: 0.95rem; }
+.protocol-pdf-section .btn-download-pdf { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-width: 14rem; }
 </style>
 {% endblock %}
 
@@ -87,9 +90,15 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% if protocol_guide_pdf %}
+                <div class="protocol-pdf-section">
+                    <p class="protocol-pdf-note">Offline reference for this protocol.</p>
+                    <a href="{{ url_for('static', filename=protocol_guide_pdf) }}" class="btn btn-primary btn-download-pdf" download>Download PDF guide</a>
+                </div>
+                {% endif %}
             </section>
 
-            {% if category_completed and (next_category or previous_category) %}
+            {% if next_category or previous_category %}
             <section class="protocol-complete-section">
                 <div class="protocol-complete-buttons">
                     {% if previous_category %}

@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file, abort
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file, abort, g
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 import base64
 import binascii
 import codecs
+import hashlib
+import logging
+from logging.handlers import RotatingFileHandler
+import time
 
 _APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -120,6 +124,62 @@ app.secret_key = secrets.token_hex(16)
 DATABASE = 'thaghrah.db'
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 PCAPS_DIR = os.path.join(STATIC_DIR, 'pcaps')
+LOGS_DIR = os.path.join(_APP_ROOT, 'logs')
+APP_LOG_PATH = os.path.join(LOGS_DIR, 'app.log')
+
+
+def _setup_app_logging():
+    os.makedirs(LOGS_DIR, exist_ok=True)
+    abs_log_path = os.path.abspath(APP_LOG_PATH)
+    for h in logging.getLogger().handlers:
+        if isinstance(h, RotatingFileHandler) and os.path.abspath(getattr(h, 'baseFilename', '')) == abs_log_path:
+            return
+    file_handler = RotatingFileHandler(APP_LOG_PATH, maxBytes=2_000_000, backupCount=5, encoding='utf-8')
+    file_handler.setFormatter(
+        logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+    )
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info("Logging initialized at %s", APP_LOG_PATH)
+
+
+def _flag_fingerprint(value):
+    value = trim_only(value)
+    digest = hashlib.sha256(value.encode('utf-8', errors='ignore')).hexdigest()[:10]
+    return f"len={len(value)} sha256={digest}"
+
+
+_setup_app_logging()
+
+
+@app.before_request
+def _request_timer_start():
+    g._request_start = time.perf_counter()
+
+
+@app.after_request
+def _request_timer_log(response):
+    started = getattr(g, '_request_start', None)
+    if started is None:
+        return response
+    elapsed_ms = (time.perf_counter() - started) * 1000.0
+    should_log = (
+        request.path in ('/submit_flag', '/challenges/ai/submit-flag')
+        or request.path.startswith('/challenges/ai')
+        or elapsed_ms >= 1200
+    )
+    if should_log:
+        app.logger.info(
+            "REQ method=%s path=%s status=%s elapsed_ms=%.2f user_id=%s",
+            request.method,
+            request.path,
+            response.status_code,
+            elapsed_ms,
+            session.get('user_id'),
+        )
+    return response
 
 
 def _resolve_ai_pcap_path(rel_path):
@@ -157,6 +217,31 @@ def get_protocol_details(protocol_name):
         'focus': 'Traffic structure, message flow, and observable indicators.',
         'why_it_matters': 'Learning this protocol improves your network analysis and incident response skills.'
     })
+
+
+def _protocol_key_for_pdf(category_title):
+    """Map category row title to a PROTOCOL_NAMES label (PDFs use e.g. 'HTTP Protocol Guide.pdf')."""
+    t = (category_title or '').strip()
+    if not t:
+        return None
+    if t == 'TCP' or t.startswith('TCP '):
+        return 'TCP'
+    for name in PROTOCOL_NAMES:
+        if t == name:
+            return name
+    return None
+
+
+def protocol_guide_pdf_rel_path(category_title):
+    """Relative path under static/ for the protocol PDF if the file exists, else None."""
+    key = _protocol_key_for_pdf(category_title)
+    if not key:
+        return None
+    filename = f'{key} Protocol Guide.pdf'
+    full = os.path.join(STATIC_DIR, 'pdfs', filename)
+    if os.path.isfile(full):
+        return f'pdfs/{filename}'
+    return None
 
 
 def get_db():
@@ -760,7 +845,8 @@ def category_challenges(category_id):
         total_points=total_points,
         category_completed=category_completed,
         next_category=next_category,
-        previous_category=previous_category
+        previous_category=previous_category,
+        protocol_guide_pdf=protocol_guide_pdf_rel_path(cat['title']),
     )
 
 
@@ -792,22 +878,27 @@ def challenge(challenge_id):
 @app.route('/submit_flag', methods=['POST'])
 @login_required
 def submit_flag():
+    started = time.perf_counter()
     data = request.get_json(silent=True) or {}
     challenge_id = data.get('challenge_id')
     flag = data.get('flag')
     used_hint = bool(data.get('used_hint', False))
     
     if challenge_id is None or flag is None:
+        app.logger.warning("SUBMIT_FLAG missing_fields challenge_id=%r user_id=%s", challenge_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Missing challenge ID or flag'})
     # Coerce flag to string and strip (in case of number or extra whitespace)
     flag = str(flag).strip()
     if not flag:
+        app.logger.warning("SUBMIT_FLAG empty_flag challenge_id=%r user_id=%s", challenge_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Please enter a flag'})
     try:
         challenge_id = int(challenge_id)
         if challenge_id < 1:
+            app.logger.warning("SUBMIT_FLAG invalid_challenge_id challenge_id=%r user_id=%s", challenge_id, session.get('user_id'))
             return jsonify({'success': False, 'message': 'Invalid challenge ID'})
     except (ValueError, TypeError):
+        app.logger.warning("SUBMIT_FLAG invalid_challenge_id challenge_id=%r user_id=%s", challenge_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Invalid challenge ID'})
     
     conn = get_db()
@@ -815,6 +906,7 @@ def submit_flag():
     
     if not challenge:
         conn.close()
+        app.logger.warning("SUBMIT_FLAG challenge_not_found challenge_id=%s user_id=%s", challenge_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Challenge not found'})
     # Normalize: strip whitespace, handle bytes/str from DB, remove invisible chars
     def normalize_flag(s):
@@ -850,11 +942,44 @@ def submit_flag():
             if new_badges:
                 badge_names = [badge['name'] for badge in new_badges]
                 badge_message = f' 🏆 Badge earned: {", ".join(badge_names)}!'
+        completed_rows = db_queries.get_user_progress(conn, session['user_id'])
+        completed_count = len({row[0] for row in completed_rows})
+        total_network_challenges = len(get_network_challenges())
+        all_challenges_completed = completed_count >= total_network_challenges
         
         conn.close()
+        app.logger.info(
+            "SUBMIT_FLAG success challenge_id=%s user_id=%s used_hint=%s points=%s completed=%s/%s all_completed=%s elapsed_ms=%.2f submitted=%s",
+            challenge_id,
+            session.get('user_id'),
+            used_hint,
+            points_earned,
+            completed_count,
+            total_network_challenges,
+            all_challenges_completed,
+            (time.perf_counter() - started) * 1000.0,
+            _flag_fingerprint(flag),
+        )
         message = f'Correct! Challenge completed! +{points_earned} points.' + badge_message
-        return jsonify({'success': True, 'message': message, 'new_badges': new_badges, 'points_earned': points_earned})
+        return jsonify(
+            {
+                'success': True,
+                'message': message,
+                'new_badges': new_badges,
+                'points_earned': points_earned,
+                'completed_count': completed_count,
+                'total_challenges': total_network_challenges,
+                'all_challenges_completed': all_challenges_completed,
+            }
+        )
     conn.close()
+    app.logger.info(
+        "SUBMIT_FLAG incorrect challenge_id=%s user_id=%s elapsed_ms=%.2f submitted=%s",
+        challenge_id,
+        session.get('user_id'),
+        (time.perf_counter() - started) * 1000.0,
+        _flag_fingerprint(flag),
+    )
     return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
 
 
@@ -1126,23 +1251,28 @@ def ai_challenge_hint():
 @app.route('/challenges/ai/submit-flag', methods=['POST'])
 @login_required
 def ai_challenge_submit_flag():
+    started = time.perf_counter()
     data = request.get_json(silent=True) or {}
     try:
         ai_id = int(data.get('ai_challenge_id'))
     except (TypeError, ValueError):
+        app.logger.warning("AI_SUBMIT invalid_challenge_id challenge_id=%r user_id=%s", data.get('ai_challenge_id'), session.get('user_id'))
         return jsonify({'success': False, 'message': 'Invalid challenge.'}), 400
 
     flag = data.get('flag')
     if flag is None or not str(flag).strip():
+        app.logger.warning("AI_SUBMIT empty_flag challenge_id=%s user_id=%s", ai_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Please enter the flag value.'}), 400
 
     conn = get_db()
     row = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
     if not row:
         conn.close()
+        app.logger.warning("AI_SUBMIT challenge_not_found challenge_id=%s user_id=%s", ai_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'Challenge not found.'}), 404
     if row['completed']:
         conn.close()
+        app.logger.info("AI_SUBMIT already_completed challenge_id=%s user_id=%s", ai_id, session.get('user_id'))
         return jsonify({'success': False, 'message': 'You already solved this challenge.'})
 
     submitted = trim_only(flag)
@@ -1152,6 +1282,14 @@ def ai_challenge_submit_flag():
 
     if submitted != answer_flag:
         conn.close()
+        app.logger.info(
+            "AI_SUBMIT incorrect challenge_id=%s user_id=%s elapsed_ms=%.2f submitted=%s answer=%s",
+            ai_id,
+            session.get('user_id'),
+            (time.perf_counter() - started) * 1000.0,
+            _flag_fingerprint(submitted),
+            _flag_fingerprint(answer_flag),
+        )
         return jsonify({'success': False, 'message': 'Incorrect flag. Try again!'})
 
     base_points = int(row['points']) if row['points'] else 100
@@ -1160,6 +1298,15 @@ def ai_challenge_submit_flag():
 
     if db_queries.complete_ai_challenge(conn, session['user_id'], ai_id, awarded):
         conn.close()
+        app.logger.info(
+            "AI_SUBMIT success challenge_id=%s user_id=%s used_hint=%s points=%s elapsed_ms=%.2f submitted=%s",
+            ai_id,
+            session.get('user_id'),
+            used_hint,
+            awarded,
+            (time.perf_counter() - started) * 1000.0,
+            _flag_fingerprint(submitted),
+        )
         return jsonify(
             {
                 'success': True,
@@ -1171,6 +1318,12 @@ def ai_challenge_submit_flag():
     row2 = db_queries.get_ai_challenge_for_user(conn, ai_id, session['user_id'])
     conn.close()
     if row2 and row2['completed']:
+        app.logger.info(
+            "AI_SUBMIT already_recorded challenge_id=%s user_id=%s elapsed_ms=%.2f",
+            ai_id,
+            session.get('user_id'),
+            (time.perf_counter() - started) * 1000.0,
+        )
         return jsonify(
             {
                 'success': True,
@@ -1179,6 +1332,12 @@ def ai_challenge_submit_flag():
                 'used_hint': bool(row2['hint_used']),
             }
         )
+    app.logger.error(
+        "AI_SUBMIT completion_write_failed challenge_id=%s user_id=%s elapsed_ms=%.2f",
+        ai_id,
+        session.get('user_id'),
+        (time.perf_counter() - started) * 1000.0,
+    )
     return jsonify({'success': False, 'message': 'Could not record completion. Try again.'})
 
 
