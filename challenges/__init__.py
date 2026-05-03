@@ -44,9 +44,61 @@ from .http.challenge_14 import challenge as challenge_14
 from .http.challenge_15 import challenge as challenge_15
 
 
+# Suffix for static/pcaps/challenge_%02d.pcapng (and matching keys/) — same order as
+# get_network_challenges(); matches script/README numbering (NOT the DB row id).
+CHALLENGE_PCAP_SUFFIXES = (
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    17,
+    16,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+)
+
+
+def pcap_suffix_for_challenge_id(challenge_id: int) -> int:
+    """Map DB challenge primary key (1..40) to capture filename challenge_XX.pcapng."""
+    if not isinstance(challenge_id, int) or challenge_id < 1 or challenge_id > len(CHALLENGE_PCAP_SUFFIXES):
+        return challenge_id if isinstance(challenge_id, int) else 1
+    return CHALLENGE_PCAP_SUFFIXES[challenge_id - 1]
+
+
 def get_network_challenges():
-    """Returns all network challenges in global order.
-    IDs map 1?ch01, ? 14?ch14, 15?ch15 so pcap links work.
+    """Returns all network challenges in global order (DB ids 1..40 follow this list).
     Category grouping (TCP, etc.) is done via category_slug when inserting into DB.
     """
     return [

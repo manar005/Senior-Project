@@ -128,7 +128,7 @@ def _friendly_api_http_error(status: int, body_text: str, chat_url: str = "") ->
         if "max_tokens" in low or "max_completion" in low:
             return "The AI provider rejected request parameters (400). Restart the server after updating the app."
     return (
-        "The AI service returned an error. Check the terminal where you run `python app.py` for a "
+        "The AI service returned an error. Check the terminal where you run `python run.py` for a "
         "[Thaghrah AI] log line with details. You can also try a shorter prompt or set GROK_MODEL in .env."
     )
 

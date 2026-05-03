@@ -159,13 +159,13 @@
         {% if challenge.id >= 1 and challenge.id <= 40 %}
         <section class="challenge-section">
             <h3>Capture file</h3>
-            <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(challenge.id)) }}" download class="btn btn-secondary">Download pcap</a></p>
+            <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(pcap_suffix)) }}" download class="btn btn-secondary">Download pcap</a></p>
         </section>
         {% endif %}
-        {% if challenge.id == 16 or challenge.id == 37 %}
+        {% if pcap_suffix == 16 or pcap_suffix == 37 %}
         <section class="challenge-section">
             <h3>Private key (for decryption)</h3>
-            <p><a href="{{ url_for('static', filename='keys/challenge_%02d_private.pem'|format(challenge.id)) }}" download class="btn btn-secondary">Download private key</a></p>
+            <p><a href="{{ url_for('static', filename='keys/challenge_%02d_private.pem'|format(pcap_suffix)) }}" download class="btn btn-secondary">Download private key</a></p>
             <p class="points-note">Use this key in Wireshark to decrypt the TLS traffic and see the full message (see Hint).</p>
         </section>
         {% endif %}
@@ -251,29 +251,39 @@
     document.getElementById('flag-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (isSubmitting) return;
+        isSubmitting = true;
         const form = document.getElementById('flag-form');
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
-        isSubmitting = true;
         
         const challengeId = document.getElementById('challenge-id').value;
         const flag = document.getElementById('flag-input').value.trim();
         const resultDiv = document.getElementById('flag-result');
         
         try {
+            const cid = parseInt(challengeId, 10);
             const response = await fetch('/submit_flag', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
-                    challenge_id: parseInt(challengeId),
+                    challenge_id: Number.isFinite(cid) ? cid : null,
                     flag: flag,
-                    used_hint: usedHint
+                    used_hint: !!usedHint
                 })
             });
-            
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseErr) {
+                resultDiv.className = 'flag-result error';
+                resultDiv.textContent = 'Server returned an invalid response (try refreshing). If this persists, check logs.';
+                submitBtn.disabled = false;
+                isSubmitting = false;
+                return;
+            }
             
             if (data.success) {
                 resultDiv.className = 'flag-result success';
@@ -281,11 +291,13 @@
                 
                 // Show badge notification if any badges were earned
                 if (data.new_badges && data.new_badges.length > 0) {
-                    const badgeNames = data.new_badges.map(b => b.name).join(', ');
-                    const badgeIcons = data.new_badges.map(b => b.icon).join(' ');
-                    setTimeout(() => {
-                        alert(`🎉 Congratulations!\n\nYou earned ${data.new_badges.length} badge(s):\n${badgeIcons} ${badgeNames}`);
-                    }, 500);
+                    try {
+                        const badgeNames = data.new_badges.map(b => b && b.name).filter(Boolean).join(', ');
+                        const badgeIcons = data.new_badges.map(b => b && b.icon).filter(Boolean).join(' ');
+                        setTimeout(() => {
+                            alert(`🎉 Congratulations!\n\nYou earned ${data.new_badges.length} badge(s):\n${badgeIcons} ${badgeNames}`);
+                        }, 500);
+                    } catch (badgeErr) { /* non-fatal */ }
                 }
                 
                 if (data.all_challenges_completed) {

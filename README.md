@@ -45,7 +45,7 @@ The system is implemented as a **Flask** application with **SQLite** for users, 
 | Database | SQLite (`thaghrah.db`, created/updated on startup) |
 | Auth | Werkzeug password hashing; Flask sessions |
 | Frontend | Jinja2 templates, CSS, JavaScript |
-| Configuration | `.env` loading via `python-dotenv` with a fallback loader in `app.py` |
+| Configuration | `.env` loading via `python-dotenv` with a fallback loader in `thaghrah/config.py` |
 | AI challenge pipeline | HTTP APIs (xAI Grok or Groq, selectable via env); JSON plan → PCAP build (`pcap_from_ai_plan`, Scapy / optional tshark path) |
 | Logging | Python `logging` with `RotatingFileHandler` → `logs/app.log` |
 | Tooling | [Scapy](https://scapy.net/) and [Pillow](https://python-pillow.org/) (capture generation and assets where applicable) |
@@ -90,10 +90,10 @@ The system is implemented as a **Flask** application with **SQLite** for users, 
 5. **Run the application**:
 
    ```bash
-   python app.py
+   python run.py
    ```
 
-   On first run this initializes the SQLite schema, seeds categories/challenges/badges, and starts the development server.
+   On first run this initializes the SQLite schema, seeds categories/challenges/badges, and starts the development server. You can also use `python app.py` (thin shim) or `flask --app app run` if you prefer.
 
 6. **Open the app** at [http://127.0.0.1:5001](http://127.0.0.1:5001).
 
@@ -103,7 +103,7 @@ Challenge pages expect packet captures under `static/pcaps/` (for example `chall
 
 ### Logs (`logs/`)
 
-On startup the app ensures `logs/` exists and writes **rotating** logs to `logs/app.log` (with numbered backups when the file grows large). Useful lines include HTTP timing for `/submit_flag` and `/challenges/ai/*`, plus structured submit outcomes. Adjust verbosity or handlers in `app.py` if you deploy to production.
+On startup the app ensures `logs/` exists and writes **rotating** logs to `logs/app.log` (with numbered backups when the file grows large). Useful lines include HTTP timing for `/submit_flag` and `/challenges/ai/*`, plus structured submit outcomes. Adjust verbosity or handlers in `thaghrah/__init__.py` if you deploy to production.
 
 ### Optional — email for password reset
 
@@ -144,9 +144,20 @@ Run this from the **project root** so imports resolve correctly.
 
 ```
 Senior-Project/
-├── app.py                    # Flask app, routes, DB init, badge logic, logging hooks
+├── run.py                    # Dev entrypoint: DB init + Flask dev server
+├── app.py                    # Shim: `app` for FLASK_APP=app; same as run when executed
+├── thaghrah/                 # Application package (factory, routes, DB, config)
+│   ├── __init__.py           # create_app(), logging, request timing
+│   ├── config.py             # Paths, .env loading
+│   ├── constants.py          # Protocol names and UI copy
+│   ├── database.py           # get_db(), init_db(), migrations
+│   ├── challenge_utils.py    # Badges, unlock logic, flag helpers
+│   ├── ai_helpers.py         # AI Lab encoding / hint helpers
+│   ├── mail.py               # Password reset email
+│   ├── decorators.py         # login_required
+│   └── routes/               # HTTP handlers (split by area)
 ├── db_queries.py             # SQLite helpers
-├── schema.sql                # Reference schema (DB is also created in app.py)
+├── schema.sql                # Reference schema (DB is created/updated in init_db)
 ├── grok_challenge_client.py  # LLM calls for AI challenge generation
 ├── pcap_from_ai_plan.py      # Build PCAPs from AI JSON plans
 ├── ai_challenge_utils.py     # Flag normalization and AI challenge helpers
@@ -204,7 +215,7 @@ Working through Thaghrah helps students:
 
 ## Notes
 
-- The database is initialized automatically when you run `app.py`.
+- The database is initialized automatically when you run `run.py` or `app.py`.
 - Passwords are stored as Werkzeug hashes, not plaintext.
 - Unlocking is **global and sequential** according to the order in `challenges/__init__.py`.
 - Points and badge progress are stored per user.
