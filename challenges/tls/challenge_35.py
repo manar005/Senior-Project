@@ -1,15 +1,15 @@
 """
-Challenge 35: TLS (3/5)
+Challenge 37: TLS (5/5)
 Category: TLS
 """
 challenge = {
-    'title': 'TLS Cipher Suite',
-    'description': 'In the TLS Server Hello, the server selects a cipher suite. Find the hexadecimal value of the selected cipher suite (two bytes) and submit as CIPHER_XXXX (four hex characters, e.g. CIPHER_0A1B).',
-    'hint': 'Filter for TLS. Expand Server Hello → Cipher Suite. The value is shown as 0xXXXX. Submit CIPHER_ followed by the four hex characters (uppercase, no 0x).',
-    'flag': 'CIPHER_C02F',
-    'expected_outcome': 'Identify the negotiated TLS cipher suite from Server Hello',
+    'title': 'TLS Application Data',
+    'description': 'After the TLS handshake, encrypted application data is exchanged. If you have the private key, decrypt the session and find the secret message. The flag is that message.',
+    'hint': 'Download the private key from this page. In Wireshark: Edit → Preferences → Protocols → TLS → RSA keys list → Add: IP 127.0.0.1, Port 9444, Protocol http, Key file (your downloaded .pem). Reload the pcap. Follow the TLS stream or inspect decrypted application data; the secret message is the flag.',
+    'flag': 'TLS_APP_FLAG',
+    'expected_outcome': 'Decrypt TLS application data and extract the secret message',
     'challenge_type': 'network',
-    'points': 120,
+    'points': 150,
     'category_id': 7,
-    'order_in_category': 3,
+    'order_in_category': 5,
 }

@@ -75,6 +75,47 @@ def trim_only(s: Any) -> str:
     return str(s).strip()
 
 
+def _flag_words_from_text(value: Any) -> List[str]:
+    s = trim_only(value).upper()
+    # Split camel-case boundaries before normal symbol cleanup.
+    s = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s)
+    s = re.sub(r"[^A-Z0-9]+", "_", s)
+    words = [w for w in s.split("_") if w]
+    return words
+
+
+def normalize_ai_flag_value(
+    value: Any,
+    fallback_text: Any = "",
+    protocol_hint: Any = "",
+    target_words: int = 3,
+    max_word_len: int = 12,
+) -> str:
+    """
+    Normalize AI final flags to fixed-challenge style:
+    UPPERCASE words joined by underscores, exactly 3 short meaningful words.
+    """
+    stop = {
+        "THE", "AND", "FOR", "WITH", "FROM", "THIS", "THAT", "THEN", "INTO", "ONTO",
+        "FLAG", "VALUE", "CHALLENGE", "NETWORK", "PACKET", "CAPTURE", "TRAFFIC",
+    }
+    words = _flag_words_from_text(value)
+    # If the model gave one mashed token (e.g. SECRETPHISHF), enrich with title/protocol words.
+    if len(words) < target_words:
+        extra = [w for w in _flag_words_from_text(fallback_text) if w not in stop]
+        if extra:
+            words = extra
+    if len(words) < target_words:
+        p = _flag_words_from_text(protocol_hint) or ["AI"]
+        words = words + p + ["FLAG", "CODE"]
+    if len(words) < target_words:
+        words = ["AI", "CHALLENGE", "FLAG"]
+    words = [w[:max_word_len] for w in words[:target_words]]
+    while len(words) < target_words:
+        words.append("FLAG")
+    return "_".join(words)
+
+
 def extract_json_object(text: str) -> Optional[Dict[str, Any]]:
     """Parse first JSON object from model output (handles ```json fences)."""
     if not text:
@@ -138,7 +179,11 @@ def validate_grok_challenge_payload(data: Dict[str, Any]) -> Tuple[bool, str, Op
     if not _is_non_empty_str(answer_flag_raw) and _is_non_empty_str(data.get("flag")):
         answer_flag_raw = extract_flag_inner_value(str(data.get("flag")))
 
-    answer_flag = trim_only(answer_flag_raw)
+    answer_flag = normalize_ai_flag_value(
+        answer_flag_raw,
+        fallback_text=data.get("title") or data.get("description"),
+        protocol_hint=data.get("protocol"),
+    )
     if not answer_flag:
         return False, "answer_flag is required and must not be empty", None
 
@@ -188,6 +233,14 @@ def validate_grok_challenge_payload(data: Dict[str, Any]) -> Tuple[bool, str, Op
     encoding = str(data.get("encoding") or enc).strip().lower() or "none"
     if encoding not in VALID_ENCODINGS:
         encoding = "custom"
+    # Keep non-encoded challenges in fixed-flag style.
+    if encoding == "none":
+        display_inner = normalize_ai_flag_value(
+            display_inner,
+            fallback_text=data.get("title") or data.get("description"),
+            protocol_hint=data.get("protocol"),
+        )
+        display_flag = canonical_flag_line(display_inner)
 
     fragmentation = parse_bool(data.get("fragmentation"), False)
     fragment_count = coerce_fragment_count(data.get("fragment_count"), 4 if fragmentation else 1)

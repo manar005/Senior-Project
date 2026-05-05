@@ -1,4 +1,6 @@
 """Thaghrah Flask application factory."""
+import atexit
+import glob
 import logging
 import os
 import secrets
@@ -7,7 +9,7 @@ import time
 from flask import Flask, g, request, session
 from logging.handlers import RotatingFileHandler
 
-from thaghrah.config import APP_LOG_PATH, APP_ROOT, LOGS_DIR
+from thaghrah.config import APP_LOG_PATH, APP_ROOT, LOGS_DIR, PCAPS_DIR
 
 
 def _setup_app_logging(app):
@@ -53,6 +55,34 @@ def _register_request_timing(app):
         return response
 
 
+def _remove_ai_pcaps():
+    """Delete ephemeral AI-generated capture files under static/pcaps."""
+    pattern = os.path.join(PCAPS_DIR, "ai_u*.pcapng")
+    removed = 0
+    for path in glob.glob(pattern):
+        try:
+            if os.path.isfile(path):
+                os.unlink(path)
+                removed += 1
+        except OSError:
+            continue
+    return removed
+
+
+def _register_ai_pcap_cleanup(app):
+    """Ensure AI pcaps are cleaned at startup and server shutdown."""
+    startup_removed = _remove_ai_pcaps()
+    if startup_removed:
+        app.logger.info("AI_PCAP_CLEANUP startup_removed=%s", startup_removed)
+
+    def _cleanup_on_exit():
+        removed = _remove_ai_pcaps()
+        if removed:
+            app.logger.info("AI_PCAP_CLEANUP shutdown_removed=%s", removed)
+
+    atexit.register(_cleanup_on_exit)
+
+
 def create_app():
     """Application factory: call once per process (e.g. from run.py or WSGI)."""
     app = Flask(
@@ -64,6 +94,7 @@ def create_app():
 
     _setup_app_logging(app)
     _register_request_timing(app)
+    _register_ai_pcap_cleanup(app)
 
     from thaghrah.routes import ai_lab, auth, network, pages
 

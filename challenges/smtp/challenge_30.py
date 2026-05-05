@@ -1,15 +1,15 @@
 """
-Challenge 30: SMTP (2/5)
+Challenge 33: SMTP (5/5)
 Category: SMTP
 """
 challenge = {
-    'title': 'SMTP Command Sequence',
-    'description': 'In this capture, an SMTP client sends a sequence of commands to the server. Identify the second command sent. The flag is that command in uppercase, with spaces replaced by underscores.',
-    'hint': 'Filter by tcp.port == 2525 (or the SMTP port in the capture). Follow the TCP stream and read the client commands in order. The first is usually EHLO/HELO; the second command is the flag format.',
-    'flag': 'MAIL_FROM:<SENDER@CHALLENGE.LAB>',
-    'expected_outcome': 'Learn SMTP command order and extract a specific command from the stream',
+    'title': 'SMTP Full Dialog',
+    'description': 'Reconstruct the full SMTP dialog from this capture. The flag is the concatenation of the first digit of each server reply code in order. Submit as SMTP_ followed by that string.',
+    'hint': 'Filter for SMTP traffic. List all server replies in time order; take the first digit of each three-digit code and concatenate. Submit as SMTP_ followed by that string.',
+    'flag': 'SMTP_2223222',
+    'expected_outcome': 'Reconstruct and summarize a full SMTP server reply sequence',
     'challenge_type': 'network',
-    'points': 100,
+    'points': 150,
     'category_id': 6,
-    'order_in_category': 2,
+    'order_in_category': 5,
 }

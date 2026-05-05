@@ -162,7 +162,7 @@
             <p><a href="{{ url_for('static', filename='pcaps/challenge_%02d.pcapng'|format(pcap_suffix)) }}" download class="btn btn-secondary">Download pcap</a></p>
         </section>
         {% endif %}
-        {% if pcap_suffix == 16 or pcap_suffix == 37 %}
+        {% if pcap_suffix == 31 or pcap_suffix == 35 %}
         <section class="challenge-section">
             <h3>Private key (for decryption)</h3>
             <p><a href="{{ url_for('static', filename='keys/challenge_%02d_private.pem'|format(pcap_suffix)) }}" download class="btn btn-secondary">Download private key</a></p>
@@ -183,7 +183,7 @@
             <h3>Submit flag</h3>
             <p class="points-value">Worth <strong>{{ challenge.points | default(100) }}</strong> points (full score), or <strong>{{ (challenge.points | default(100)) // 2 }}</strong> if you use the hint.</p>
             <form id="flag-form" class="flag-form">
-                <input type="hidden" id="challenge-id" value="{{ challenge.id }}">
+                <input type="hidden" id="challenge-id" value="{{ challenge_display_id }}">
                 <input type="hidden" id="used-hint" value="0">
                 <div class="form-group">
                     <input type="text" id="flag-input" placeholder="Enter the flag…" class="flag-input" required>

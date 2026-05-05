@@ -4,7 +4,7 @@ import time
 from flask import abort, current_app, jsonify, render_template, request, send_file, session, url_for
 
 import db_queries
-from ai_challenge_utils import extract_flag_inner_value, trim_only
+from ai_challenge_utils import extract_flag_inner_value, normalize_ai_flag_value, trim_only
 from grok_challenge_client import call_grok_for_challenge
 from pcap_from_ai_plan import build_packets_from_plan, make_ai_pcap_filename, write_pcap_with_tshark
 
@@ -13,6 +13,7 @@ from thaghrah.ai_helpers import (
     decode_with_encoding,
     encode_with_encoding,
     requested_encoding_from_prompt,
+    requested_encryption_from_prompt,
     requested_fragmentation_from_prompt,
 )
 from thaghrah.challenge_utils import _flag_fingerprint, _resolve_ai_pcap_path
@@ -44,8 +45,12 @@ def register_routes(app):
         display_inner = extract_flag_inner_value(display_flag or "")
         if not display_inner or not answer_flag:
             return jsonify({"success": False, "message": "Could not build a valid challenge. Try again."}), 400
+        protocol = str(payload.get("protocol") or "").strip().upper()
         encoding = str(payload.get("encoding") or "none").strip().lower() or "none"
         requested_encoding = requested_encoding_from_prompt(prompt)
+        requested_encryption = requested_encryption_from_prompt(prompt)
+        must_encode_from_prompt = requested_encoding is not None
+        force_encoded = bool(requested_encoding) or protocol in ("TLS", "HTTPS") or requested_encryption
         requested_fragmentation = requested_fragmentation_from_prompt(prompt)
         frag_val = payload.get("fragmentation")
         if isinstance(frag_val, str):
@@ -58,12 +63,20 @@ def register_routes(app):
             fragment_count = 4 if fragmentation else 1
         if requested_fragmentation is not None:
             fragmentation = requested_fragmentation
-        elif requested_encoding and not fragmentation:
-            pass
-        elif requested_encoding and fragmentation:
+        elif requested_encryption:
+            # Encryption challenges should not fragment unless user explicitly asked.
             fragmentation = False
         if not fragmentation:
             fragment_count = 1
+        if requested_encryption:
+            # Encryption challenges must carry encrypted values with a decryptable key clue.
+            encoding = "xor"
+        if must_encode_from_prompt:
+            # User prompt takes priority over model drift.
+            encoding = requested_encoding
+        if force_encoded and encoding == "none":
+            # Encryption-focused prompts must not expose plain on-wire FLAG values.
+            encoding = requested_encoding or "base64"
         if encoding != "none":
             decoded_from_display = decode_with_encoding(display_inner, encoding)
             decoded_from_answer = decode_with_encoding(answer_flag, encoding)
@@ -74,7 +87,14 @@ def register_routes(app):
                 display_inner = answer_flag
                 answer_flag = decoded_from_answer
             if display_inner == answer_flag:
-                return jsonify({"success": False, "message": "Generated challenge was malformed. Please try again."}), 400
+                # Model returned inconsistent encoded fields (plain display + encoded mode).
+                # Recover instead of failing by forcing encoded on-wire display.
+                recovered = encode_with_encoding(answer_flag, encoding)
+                if recovered and recovered != answer_flag:
+                    display_inner = recovered
+                    display_flag = f'FLAG = "{display_inner}"'
+                else:
+                    return jsonify({"success": False, "message": "Generated challenge was malformed. Please try again."}), 400
         elif requested_encoding:
             encoding = requested_encoding
             encoded_value = encode_with_encoding(answer_flag, encoding)
@@ -82,13 +102,37 @@ def register_routes(app):
                 display_flag = f'FLAG = "{encoded_value}"'
                 display_inner = encoded_value
 
+        # Enforce fixed-challenge style for the final submitted value.
+        answer_flag = normalize_ai_flag_value(
+            answer_flag,
+            fallback_text=payload.get("title") or payload.get("description"),
+            protocol_hint=payload.get("protocol"),
+        )
         if encoding == "none":
             display_inner = answer_flag
         else:
             encoded_value = encode_with_encoding(answer_flag, encoding)
-            if encoded_value:
-                display_inner = encoded_value
+            if not encoded_value or encoded_value == answer_flag:
+                # Hard guarantee for prompt-driven encoding requests.
+                fallback_encoding = "base64"
+                encoded_value = encode_with_encoding(answer_flag, fallback_encoding)
+                if not encoded_value or encoded_value == answer_flag:
+                    return jsonify({"success": False, "message": "Could not enforce encoded flag output. Please try again."}), 500
+                encoding = fallback_encoding
+            display_inner = encoded_value
         display_flag = f'FLAG = "{display_inner}"'
+        if requested_encryption:
+            # Ensure packet evidence includes the key needed for decryption.
+            plan = payload.get("pcap_plan") if isinstance(payload.get("pcap_plan"), dict) else None
+            packets_spec = plan.get("packets") if plan else None
+            if isinstance(packets_spec, list) and packets_spec:
+                first = packets_spec[0]
+                if isinstance(first, dict):
+                    ptxt = first.get("payload")
+                    ptxt = ptxt if isinstance(ptxt, str) else ""
+                    if "XOR_KEY=" not in ptxt:
+                        sep = "\n" if ptxt and not ptxt.endswith("\n") else ""
+                        first["payload"] = f"{ptxt}{sep}XOR_KEY=23"
 
         try:
             packets = build_packets_from_plan(
@@ -97,6 +141,7 @@ def register_routes(app):
                 answer_flag,
                 fragmentation=fragmentation,
                 fragment_count=fragment_count,
+                encoding=encoding,
             )
         except Exception:
             return jsonify({"success": False, "message": "Could not build the capture file. Try again."}), 500

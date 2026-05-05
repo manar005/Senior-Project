@@ -123,6 +123,38 @@ def _clean_fragment_placeholder_payload(payload: str) -> str:
     return text
 
 
+def _clean_xor_artifact_payload(payload: str) -> str:
+    """
+    Remove model-added XOR noise so we keep one canonical key/value trail.
+    Examples removed:
+    - XOR_KEY=23GET / XOR_KEY = 0x1B
+    - XOR_ENCRYPTED_FLAG=...
+    """
+    if not payload:
+        return payload
+    lines = []
+    for raw in payload.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        upper = line.upper()
+        # Drop all model-provided XOR key lines; we inject one canonical key+flag packet ourselves.
+        if "XOR_KEY" in upper:
+            continue
+        # Drop model-generated noisy key/value artifacts.
+        if re.search(r"\bXOR_ENCRYPTED_FLAG\b", upper):
+            continue
+        if re.search(r"\b(?:ENCRYPTION|DECRYPTION|CIPHER)_KEY\b", upper):
+            continue
+        # Drop alphabet/digit key tables the model sometimes invents.
+        if re.search(r"[A-Z]{8,}\s*[A-Z]{8,}", line):
+            continue
+        if re.search(r"\b(?:0x[0-9A-F]{2,}|[0-9]+\s+[0-9]+\s+[0-9]+)\b", line, flags=re.IGNORECASE):
+            continue
+        lines.append(raw)
+    return "\n".join(lines).strip("\n")
+
+
 def _split_fragments(value: str, count: int) -> List[str]:
     value = value or ""
     count = max(2, min(16, count))
@@ -177,6 +209,7 @@ def build_packets_from_plan(
     answer_flag: str,
     fragmentation: bool = False,
     fragment_count: int = 1,
+    encoding: str = "none",
 ) -> List[Any]:
     """Return list of Scapy packets."""
     if wrpcap is None:
@@ -207,6 +240,8 @@ def build_packets_from_plan(
 
         # Remove full flag artifacts from baseline payloads; we will inject safely below.
         payload = _clean_payload_without_flag(payload, flag_line)
+        if (encoding or "").strip().lower() == "xor":
+            payload = _clean_xor_artifact_payload(payload)
         if display_inner:
             payload = payload.replace(display_inner, "")
         if answer_plain:
@@ -227,6 +262,10 @@ def build_packets_from_plan(
         if not fragmentation:
             if idx == inject_index:
                 payload = _expand_flag_placeholders(payload, flag_line)
+                if (encoding or "").strip().lower() == "xor":
+                    # Keep key + encoded flag together in one authoritative packet.
+                    if "XOR_KEY=23" not in payload:
+                        payload = payload + ("\n" if payload and not payload.endswith("\n") else "") + "XOR_KEY=23"
                 if flag_line not in payload:
                     payload = payload + ("\n" if payload and not payload.endswith("\n") else "") + flag_line
             if flag_line in payload:
@@ -295,8 +334,9 @@ def build_packets_from_plan(
         transfer_id = secrets.token_hex(4)
         tcp_seq = random.randint(1000, 900000)
         for i, frag in enumerate(fragments):
+            xor_key_part = "key=23; " if (encoding or "").strip().lower() == "xor" else ""
             frag_payload = (
-                f"part={i+1}; total={len(fragments)}; transfer={transfer_id}; "
+                f"part={i+1}; total={len(fragments)}; transfer={transfer_id}; {xor_key_part}"
                 f"flag_part={i+1}; data={frag}\n"
             )
             frag_bytes = frag_payload.encode("utf-8", errors="replace")
@@ -324,12 +364,38 @@ def build_packets_from_plan(
     if not fragmentation and not flag_embedded:
         # Guarantee flag on wire
         a, b = "10.11.12.1", "10.11.12.2"
+        payload = flag_line.encode("utf-8")
+        if (encoding or "").strip().lower() == "xor":
+            payload = b"XOR_KEY=23\n" + payload
         pkts.append(
             IP(src=a, dst=b)
             / TCP(sport=44444, dport=80, flags="PA", seq=1, ack=1)
-            / Raw(load=flag_line.encode("utf-8"))
+            / Raw(load=payload)
         )
         pkts[-1].time = base_time + delta
+        delta += random.uniform(0.002, 0.08)
+
+    if (encoding or "").strip().lower() == "xor" and not fragmentation:
+        # Final hard guarantee: at least one packet must contain BOTH key and encoded flag.
+        has_authoritative = False
+        for pkt in pkts:
+            try:
+                body = bytes(pkt[Raw].load).decode("utf-8", errors="ignore")
+            except Exception:
+                continue
+            if "XOR_KEY=23" in body and flag_line in body:
+                has_authoritative = True
+                break
+        if not has_authoritative:
+            flow = _fragment_flow_seed(packets_spec)
+            auth_payload = f"XOR_KEY=23\n{flag_line}".encode("utf-8")
+            auth_pkt = (
+                IP(src=flow["src_ip"], dst=flow["dst_ip"])
+                / TCP(sport=int(flow["sport"]), dport=int(flow["dport"]), flags="PA", seq=1, ack=1)
+                / Raw(load=auth_payload)
+            )
+            auth_pkt.time = base_time + delta
+            pkts.append(auth_pkt)
 
     return pkts
 
