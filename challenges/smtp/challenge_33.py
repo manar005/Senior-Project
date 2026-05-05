@@ -9,8 +9,7 @@ challenge = {
     'flag': 'SMTP_2223222',
     'expected_outcome': 'Reconstruct and summarize a full SMTP server reply sequence',
     'challenge_type': 'network',
-    'order_num': 33,
     'points': 150,
-    'category_slug': 'smtp',
+    'category_id': 6,
     'order_in_category': 5,
 }

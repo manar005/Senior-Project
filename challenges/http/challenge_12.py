@@ -9,8 +9,7 @@ challenge = {
     'flag': 'STATUS_404',
     'expected_outcome': 'Learn to identify HTTP status codes in captured traffic',
     'challenge_type': 'network',
-    'order_num': 12,
     'points': 100,
-    'category_slug': 'http',
+    'category_id': 1,
     'order_in_category': 2,
 }

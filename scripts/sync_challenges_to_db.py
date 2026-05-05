@@ -1,7 +1,7 @@
 """
 Sync challenge definitions from Python files (challenges/<category>/challenge_XX.py) to the database.
 Run this after editing any challenge's title, description, hint, flag, expected_outcome,
-challenge_type, challenge_data, category_slug, or order_in_category.
+challenge_type, challenge_data, category_id, order_in_category, etc.
 
 Usage: from project root:  python scripts/sync_challenges_to_db.py
 """
@@ -47,13 +47,7 @@ def load_challenges_from_source():
 
 DATABASE = os.path.join(PROJECT_ROOT, 'thaghrah.db')
 
-# Map challenge category_slug to challenge_categories.title
-SLUG_TO_TITLE = {
-    'http': 'HTTP', 'tcp': 'TCP', 'dns': 'DNS', 'ftp': 'FTP',
-    'icmp': 'ICMP', 'smtp': 'SMTP', 'tls': 'TLS', 'forensics': 'Forensics',
-}
-
-# Order must match challenges.get_network_challenges() so row ids 1..N align with pcap links and init_db.
+# Order must match challenges.get_network_challenges() (challenge_01 .. challenge_40 by number).
 CHALLENGE_FILE_ORDER = [
     ('http', 'challenge_01'),
     ('tcp', 'challenge_02'),
@@ -64,14 +58,14 @@ CHALLENGE_FILE_ORDER = [
     ('tcp', 'challenge_07'),
     ('tcp', 'challenge_08'),
     ('tcp', 'challenge_09'),
-    ('tcp', 'challenge_17'),
-    ('tls', 'challenge_16'),
     ('forensics', 'challenge_10'),
     ('forensics', 'challenge_11'),
     ('http', 'challenge_12'),
     ('http', 'challenge_13'),
     ('http', 'challenge_14'),
     ('http', 'challenge_15'),
+    ('tls', 'challenge_16'),
+    ('tcp', 'challenge_17'),
     ('dns', 'challenge_18'),
     ('dns', 'challenge_19'),
     ('dns', 'challenge_20'),
@@ -124,18 +118,20 @@ def sync():
         challenges = load_challenges_from_source()
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
-    categories = conn.execute('SELECT id, title FROM challenge_categories').fetchall()
-    title_to_id = {row['title']: row['id'] for row in categories}
+    categories = conn.execute('SELECT id FROM challenge_categories').fetchall()
+    valid_category_ids = {row['id'] for row in categories}
+    default_cat_id = min(valid_category_ids) if valid_category_ids else None
     updated = 0
     for i, c in enumerate(challenges, start=1):
-        category_title = SLUG_TO_TITLE.get(c.get('category_slug', 'http'), 'HTTP')
-        category_id = title_to_id.get(category_title)
+        category_id = c.get('category_id', default_cat_id)
+        if category_id not in valid_category_ids:
+            category_id = default_cat_id
         order_in_cat = c.get('order_in_category', 1)
         if category_id is not None:
             cur = conn.execute('''
                 UPDATE challenges
                 SET title = ?, description = ?, hint = ?, flag = ?, expected_outcome = ?,
-                    challenge_type = ?, challenge_data = ?, order_num = ?, category_id = ?, points = ?
+                    challenge_type = ?, challenge_data = ?, order_in_category = ?, category_id = ?, points = ?
                 WHERE id = ?
             ''', (
                 c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
@@ -145,7 +141,7 @@ def sync():
             cur = conn.execute('''
                 UPDATE challenges
                 SET title = ?, description = ?, hint = ?, flag = ?, expected_outcome = ?,
-                    challenge_type = ?, challenge_data = ?, order_num = ?, points = ?
+                    challenge_type = ?, challenge_data = ?, order_in_category = ?, points = ?
                 WHERE id = ?
             ''', (
                 c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
@@ -155,11 +151,11 @@ def sync():
             updated += 1
         else:
             # New challenge row: INSERT so sync adds challenges 12, 13, ...
-            cat_id = category_id if category_id is not None else (list(title_to_id.values())[0] if title_to_id else None)
+            cat_id = category_id if category_id is not None else default_cat_id
             if cat_id is not None:
                 conn.execute('''
                     INSERT INTO challenges (id, category_id, title, description, hint, flag,
-                        expected_outcome, challenge_type, challenge_data, order_num, points)
+                        expected_outcome, challenge_type, challenge_data, order_in_category, points)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (i, cat_id, c['title'], c['description'], c['hint'], c['flag'], c['expected_outcome'],
                       c['challenge_type'], c.get('challenge_data'), order_in_cat, c.get('points', 100)))

@@ -9,8 +9,7 @@ challenge = {
     'flag': 'METHOD_POST',
     'expected_outcome': 'Learn to locate an HTTP 200 OK response in a capture, find an encoded flag in that response, and decode it to get the flag',
     'challenge_type': 'network',
-    'order_num': 13,
     'points': 120,
-    'category_slug': 'http',
+    'category_id': 1,
     'order_in_category': 3,
 }

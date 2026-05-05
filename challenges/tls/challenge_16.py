@@ -12,8 +12,7 @@ challenge = {
     'flag': 'TLS_DECRYPT_16',
     'expected_outcome': 'Learn how to decrypt TLS traffic in Wireshark using a server private key and locate the application data (flag).',
     'challenge_type': 'network',
-    'order_num': 16,
     'points': 100,
-    'category_slug': 'tls',
+    'category_id': 7,
     'order_in_category': 2,
 }

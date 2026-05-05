@@ -9,8 +9,7 @@ challenge = {
     'flag': 'TLS_APP_FLAG',
     'expected_outcome': 'Decrypt TLS application data and extract the secret message',
     'challenge_type': 'network',
-    'order_num': 37,
     'points': 150,
-    'category_slug': 'tls',
+    'category_id': 7,
     'order_in_category': 5,
 }

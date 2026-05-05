@@ -11,16 +11,8 @@ PROTOCOL_NAMES = [
     "Forensics",
 ]
 
-CATEGORY_SLUG_TO_ORDER = {
-    "http": 1,
-    "tcp": 2,
-    "dns": 3,
-    "ftp": 4,
-    "icmp": 5,
-    "smtp": 6,
-    "tls": 7,
-    "forensics": 8,
-}
+# Challenge dicts use category_id = challenge_categories.id. With default DB seed order
+# (insert_categories in PROTOCOL_NAMES order), ids are 1..8 matching the list above.
 
 PROTOCOL_DETAILS = {
     "HTTP": {

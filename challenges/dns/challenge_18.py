@@ -11,8 +11,7 @@ challenge = {
     'flag': 'FLAG_DNS_RESPONSE',
     'expected_outcome': 'Learn to analyze DNS responses and extract data from TXT records',
     'challenge_type': 'network',
-    'order_num': 18,
     'points': 100,
-    'category_slug': 'dns',
+    'category_id': 3,
     'order_in_category': 2,
 }

@@ -9,8 +9,7 @@ challenge = {
     'flag': 'C2_BEACON',
     'expected_outcome': 'Stage DNS with HTTP, then decode an encoded session value to recover the credential',
     'challenge_type': 'network',
-    'order_num': 39,
     'points': 130,
-    'category_slug': 'forensics',
+    'category_id': 8,
     'order_in_category': 4,
 }

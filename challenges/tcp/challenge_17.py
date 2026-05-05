@@ -12,8 +12,7 @@ challenge = {
     'flag': 'KNOCK_OPEN',
     'expected_outcome': 'Learn to read TCP headers (destination port), follow packet order, and decode port numbers as ASCII to recover a hidden message',
     'challenge_type': 'network',
-    'order_num': 17,
     'points': 150,
-    'category_slug': 'tcp',
+    'category_id': 2,
     'order_in_category': 5,
 }

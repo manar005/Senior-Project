@@ -10,14 +10,13 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Challenge categories (1-10: e.g. Wireshark Basics, TCP Handshake, ...)
+-- Challenge categories (curriculum order = id ascending after seed insert order)
 CREATE TABLE IF NOT EXISTS challenge_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    order_num INTEGER NOT NULL
+    title TEXT NOT NULL
 );
 
--- Challenges table
+-- Challenges table (order_in_category = position within protocol; id = global track order 1..40)
 CREATE TABLE IF NOT EXISTS challenges (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id INTEGER NOT NULL,
@@ -28,7 +27,7 @@ CREATE TABLE IF NOT EXISTS challenges (
     expected_outcome TEXT NOT NULL,
     challenge_type TEXT NOT NULL,
     challenge_data TEXT,
-    order_num INTEGER NOT NULL,
+    order_in_category INTEGER NOT NULL,
     points INTEGER NOT NULL DEFAULT 100,
     FOREIGN KEY (category_id) REFERENCES challenge_categories(id)
 );

@@ -44,62 +44,27 @@ from .http.challenge_14 import challenge as challenge_14
 from .http.challenge_15 import challenge as challenge_15
 
 
-# Suffix for static/pcaps/challenge_%02d.pcapng (and matching keys/) — same order as
-# get_network_challenges(); matches script/README numbering (NOT the DB row id).
-CHALLENGE_PCAP_SUFFIXES = (
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    17,
-    16,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    33,
-    34,
-    35,
-    36,
-    37,
-    38,
-    39,
-    40,
-)
+# challenges.id matches challenge_NN numbering (1..40). PCAP/key files use the same suffix.
+CHALLENGE_PCAP_SUFFIXES = tuple(range(1, 41))
 
 
 def pcap_suffix_for_challenge_id(challenge_id: int) -> int:
-    """Map DB challenge primary key (1..40) to capture filename challenge_XX.pcapng."""
+    """Map DB challenge primary key (1..40) to capture filename challenge_%02d.pcapng (same as id)."""
     if not isinstance(challenge_id, int) or challenge_id < 1 or challenge_id > len(CHALLENGE_PCAP_SUFFIXES):
         return challenge_id if isinstance(challenge_id, int) else 1
     return CHALLENGE_PCAP_SUFFIXES[challenge_id - 1]
 
 
 def get_network_challenges():
-    """Returns all network challenges in global order (DB ids 1..40 follow this list).
-    Category grouping (TCP, etc.) is done via category_slug when inserting into DB.
+    """Returns all network challenges in global order (DB ids 1..40 = challenge_01..challenge_40).
+
+    List order matches challenge module numbering so challenges.id aligns with challenge_NN.
+    Unlock order in the UI still follows SQL (category id, then order_in_category), not this list order.
+
+    Each dict uses:
+    - order_in_category: sort position within that protocol on the UI (same name in DB).
+    PCAP / key filenames: challenge_%02d with d = id (see CHALLENGE_PCAP_SUFFIXES).
+    Category grouping uses category_id (challenge_categories.id) when inserting into DB.
     """
     return [
         challenge_01,
@@ -111,14 +76,14 @@ def get_network_challenges():
         challenge_07,
         challenge_08,
         challenge_09,
-        challenge_17,
-        challenge_16,
         challenge_10,
         challenge_11,
         challenge_12,
         challenge_13,
         challenge_14,
         challenge_15,
+        challenge_16,
+        challenge_17,
         challenge_18,
         challenge_19,
         challenge_20,

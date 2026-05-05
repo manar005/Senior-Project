@@ -9,8 +9,7 @@ challenge = {
     'flag': 'TLSVER_3_3',
     'expected_outcome': 'Identify TLS version from handshake packets',
     'challenge_type': 'network',
-    'order_num': 34,
     'points': 100,
-    'category_slug': 'tls',
+    'category_id': 7,
     'order_in_category': 1,
 }

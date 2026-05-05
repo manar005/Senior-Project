@@ -11,8 +11,7 @@ challenge = {
     'flag': 'ICMP_3_1',
     'expected_outcome': 'Learn to read both ICMP type and code fields and interpret Destination Unreachable messages',
     'challenge_type': 'network',
-    'order_num': 26,
     'points': 100,
-    'category_slug': 'icmp',
+    'category_id': 5,
     'order_in_category': 2,
 }

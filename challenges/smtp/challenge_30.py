@@ -9,8 +9,7 @@ challenge = {
     'flag': 'MAIL_FROM:<SENDER@CHALLENGE.LAB>',
     'expected_outcome': 'Learn SMTP command order and extract a specific command from the stream',
     'challenge_type': 'network',
-    'order_num': 30,
     'points': 100,
-    'category_slug': 'smtp',
+    'category_id': 6,
     'order_in_category': 2,
 }

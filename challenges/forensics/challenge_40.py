@@ -9,8 +9,7 @@ challenge = {
     'flag': 'FORENSICS_MULTI',
     'expected_outcome': 'Correlate a DNS query label with HTTP application data to rebuild one submission string',
     'challenge_type': 'network',
-    'order_num': 40,
     'points': 150,
-    'category_slug': 'forensics',
+    'category_id': 8,
     'order_in_category': 5,
 }

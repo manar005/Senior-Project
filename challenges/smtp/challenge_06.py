@@ -9,8 +9,7 @@ challenge = {
     'flag': 'SMTP',
     'expected_outcome': 'Learn to identify different network protocols from packet analysis',
     'challenge_type': 'network',
-    'order_num': 6,
     'points': 100,
-    'category_slug': 'smtp',
+    'category_id': 6,
     'order_in_category': 1,
 }

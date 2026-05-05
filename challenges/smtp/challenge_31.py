@@ -9,8 +9,7 @@ challenge = {
     'flag': 'REPLY_354',
     'expected_outcome': 'Identify SMTP reply codes from server responses',
     'challenge_type': 'network',
-    'order_num': 31,
     'points': 120,
-    'category_slug': 'smtp',
+    'category_id': 6,
     'order_in_category': 3,
 }

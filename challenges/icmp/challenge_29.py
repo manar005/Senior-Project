@@ -11,8 +11,7 @@ challenge = {
     'flag': 'ICMP_MSG',
     'expected_outcome': 'Combine filtering, packet order, and ASCII decoding to recover a message hidden in ICMP type fields',
     'challenge_type': 'network',
-    'order_num': 29,
     'points': 150,
-    'category_slug': 'icmp',
+    'category_id': 5,
     'order_in_category': 5,
 }

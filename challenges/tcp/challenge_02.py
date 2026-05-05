@@ -9,8 +9,7 @@ challenge = {
     'flag': 'PORT_0x1F90',
     'expected_outcome': 'Understand TCP handshake process and port identification',
     'challenge_type': 'network',
-    'order_num': 2,
     'points': 100,
-    'category_slug': 'tcp',
+    'category_id': 2,
     'order_in_category': 1,
 }

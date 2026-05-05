@@ -12,8 +12,7 @@ challenge = {
     'flag': 'CHUNKED_TXT_FLAG',
     'expected_outcome': 'Understand DNS TXT RDATA format (multiple chunks) and reassemble the flag',
     'challenge_type': 'network',
-    'order_num': 19,
     'points': 120,
-    'category_slug': 'dns',
+    'category_id': 3,
     'order_in_category': 3,
 }

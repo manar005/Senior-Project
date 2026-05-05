@@ -10,8 +10,7 @@ challenge = {
     'flag': 'FTP_REVERSED',
     'expected_outcome': 'Extract the CWD argument, decode Base64, reverse the string, and submit the flag',
     'challenge_type': 'network',
-    'order_num': 22,
     'points': 100,
-    'category_slug': 'ftp',
+    'category_id': 4,
     'order_in_category': 2,
 }

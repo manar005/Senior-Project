@@ -9,8 +9,7 @@ challenge = {
     'flag': 'ICMP_TYPE_8',
     'expected_outcome': 'Learn ICMP protocol and packet types',
     'challenge_type': 'network',
-    'order_num': 5,
     'points': 100,
-    'category_slug': 'icmp',
+    'category_id': 5,
     'order_in_category': 1,
 }

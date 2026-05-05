@@ -8,8 +8,7 @@ challenge = {
     'flag': 'ANON_HIDDEN_FLAG',
     'expected_outcome': 'Find multiple RNTO arguments, decode each, and submit the one that is the flag',
     'challenge_type': 'network',
-    'order_num': 25,
     'points': 120,
-    'category_slug': 'ftp',
+    'category_id': 4,
     'order_in_category': 3,
 }

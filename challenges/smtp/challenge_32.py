@@ -9,8 +9,7 @@ challenge = {
     'flag': 'SMTP_HEADER_FLAG',
     'expected_outcome': 'Parse SMTP message content and extract a header or body secret',
     'challenge_type': 'network',
-    'order_num': 32,
     'points': 130,
-    'category_slug': 'smtp',
+    'category_id': 6,
     'order_in_category': 4,
 }

@@ -9,9 +9,8 @@ challenge = {
     'flag': 'p@ssw0rd!',
     'expected_outcome': 'Learn how to identify brute-force activity and extract credentials from HTTP login traffic in a pcap file',
     'challenge_type': 'network',
-    'order_num': 11,
     'points': 100,
-    'category_slug': 'forensics',
+    'category_id': 8,
     'order_in_category': 2,
 }
 

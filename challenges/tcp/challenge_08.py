@@ -9,8 +9,7 @@ challenge = {
     'flag': 'REASSEMBLE_ME',
     'expected_outcome': 'Learn how data can be split across TCP segments and how to reassemble it',
     'challenge_type': 'network',
-    'order_num': 8,
     'points': 120,
-    'category_slug': 'tcp',
+    'category_id': 2,
     'order_in_category': 3,
 }

@@ -13,8 +13,7 @@ challenge = {
     'flag': base64.b64encode(_FLAG_PLAINTEXT.encode()).decode(),
     'expected_outcome': 'Understand FTP protocol security issues and credential extraction',
     'challenge_type': 'network',
-    'order_num': 4,
     'points': 100,
-    'category_slug': 'ftp',
+    'category_id': 4,
     'order_in_category': 1,
 }

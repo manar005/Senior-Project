@@ -9,8 +9,7 @@ challenge = {
     'flag': 'IMAGE_FLAG_9',
     'expected_outcome': 'Learn how to extract binary data (e.g. an image) from a TCP stream in Wireshark',
     'challenge_type': 'network',
-    'order_num': 9,
     'points': 130,
-    'category_slug': 'tcp',
+    'category_id': 2,
     'order_in_category': 4,
 }

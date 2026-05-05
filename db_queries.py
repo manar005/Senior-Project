@@ -16,30 +16,30 @@ def create_user(conn, name, email, password_hash):
     return result.lastrowid
 
 def get_all_challenges(conn):
-    """Get all challenges ordered by category order_num then challenge order_num"""
+    """Get all challenges ordered by category id then challenge order_in_category"""
     return conn.execute('''
         SELECT c.* FROM challenges c
         JOIN challenge_categories cc ON c.category_id = cc.id
-        ORDER BY cc.order_num, c.order_num
+        ORDER BY cc.id, c.order_in_category
     ''').fetchall()
 
 def get_all_categories(conn):
-    """Get all categories ordered by order_num"""
-    return conn.execute('SELECT * FROM challenge_categories ORDER BY order_num').fetchall()
+    """Get all categories ordered by id (same as former order_num when seeded in order)"""
+    return conn.execute('SELECT * FROM challenge_categories ORDER BY id').fetchall()
 
 def get_category_by_id(conn, category_id):
     """Get a single category by id"""
     return conn.execute('SELECT * FROM challenge_categories WHERE id = ?', (category_id,)).fetchone()
 
 def get_challenges_by_category(conn, category_id):
-    """Get challenges in a category ordered by order_num"""
+    """Get challenges in a category ordered by order_in_category"""
     return conn.execute(
-        'SELECT * FROM challenges WHERE category_id = ? ORDER BY order_num',
+        'SELECT * FROM challenges WHERE category_id = ? ORDER BY order_in_category',
         (category_id,)
     ).fetchall()
 
 def get_challenges_by_category_ids(conn, category_ids):
-    """Get challenges in any of the given categories, ordered by category order_num then challenge order_num"""
+    """Get challenges in any of the given categories, ordered by category id then challenge order_in_category"""
     if not category_ids:
         return []
     placeholders = ','.join('?' * len(category_ids))
@@ -47,7 +47,7 @@ def get_challenges_by_category_ids(conn, category_ids):
         SELECT c.* FROM challenges c
         JOIN challenge_categories cc ON c.category_id = cc.id
         WHERE c.category_id IN ({})
-        ORDER BY cc.order_num, c.order_num
+        ORDER BY cc.id, c.order_in_category
     '''.format(placeholders), category_ids).fetchall()
 
 def get_all_challenges_ordered(conn):
@@ -237,17 +237,17 @@ def get_category_count(conn):
     return result[0] if result else 0
 
 def insert_categories(conn, category_data_list):
-    """Insert category rows. Each item: (title, order_num)"""
+    """Insert category rows. Each item: (title,) — ids follow insert order (1..N)."""
     conn.executemany(
-        'INSERT INTO challenge_categories (title, order_num) VALUES (?, ?)',
+        'INSERT INTO challenge_categories (title) VALUES (?)',
         category_data_list
     )
     conn.commit()
 
 def insert_challenges(conn, challenge_data_list):
-    """Insert challenges. Each item: (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)"""
+    """Insert challenges. Each item: (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_in_category, points)"""
     conn.executemany('''
-        INSERT INTO challenges (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_num, points)
+        INSERT INTO challenges (category_id, title, description, hint, flag, expected_outcome, challenge_type, challenge_data, order_in_category, points)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', challenge_data_list)
     conn.commit()

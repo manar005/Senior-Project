@@ -10,8 +10,7 @@ challenge = {
     'flag': 'PASV_DATA_FLAG',
     'expected_outcome': 'Understand FTP passive mode and correlate control vs data connections',
     'challenge_type': 'network',
-    'order_num': 23,
     'points': 130,
-    'category_slug': 'ftp',
+    'category_id': 4,
     'order_in_category': 4,
 }

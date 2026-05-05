@@ -9,8 +9,7 @@ challenge = {
     'flag': 'CIPHER_C02F',
     'expected_outcome': 'Identify the negotiated TLS cipher suite from Server Hello',
     'challenge_type': 'network',
-    'order_num': 35,
     'points': 120,
-    'category_slug': 'tls',
+    'category_id': 7,
     'order_in_category': 3,
 }

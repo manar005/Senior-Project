@@ -11,8 +11,7 @@ challenge = {
     'flag': 'TYPE11',
     'expected_outcome': 'Learn to filter and count ICMP packets by type across a mixed capture',
     'challenge_type': 'network',
-    'order_num': 28,
     'points': 130,
-    'category_slug': 'icmp',
+    'category_id': 5,
     'order_in_category': 4,
 }

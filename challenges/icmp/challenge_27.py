@@ -11,8 +11,7 @@ challenge = {
     'flag': 'ID_2048',
     'expected_outcome': 'Learn the structure of ICMP Echo messages and locate Identifier and Sequence fields',
     'challenge_type': 'network',
-    'order_num': 27,
     'points': 120,
-    'category_slug': 'icmp',
+    'category_id': 5,
     'order_in_category': 3,
 }

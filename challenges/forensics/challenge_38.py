@@ -9,8 +9,7 @@ challenge = {
     'flag': 'ICMP_EXFIL_38',
     'expected_outcome': 'Extract ASCII from ICMP echo payloads and reassemble a multi-packet exfiltration string',
     'challenge_type': 'network',
-    'order_num': 38,
     'points': 120,
-    'category_slug': 'forensics',
+    'category_id': 8,
     'order_in_category': 3,
 }

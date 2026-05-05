@@ -12,8 +12,7 @@ challenge = {
     'flag': 'THINK_DNS_FINAL',
     'expected_outcome': 'Combine skills from earlier DNS challenges: read both CNAME and TXT from one response and form the flag',
     'challenge_type': 'network',
-    'order_num': 21,
     'points': 150,
-    'category_slug': 'dns',
+    'category_id': 3,
     'order_in_category': 5,
 }

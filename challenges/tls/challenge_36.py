@@ -9,8 +9,7 @@ challenge = {
     'flag': 'CN_SERVER',
     'expected_outcome': 'Extract the server certificate Common Name from TLS handshake',
     'challenge_type': 'network',
-    'order_num': 36,
     'points': 130,
-    'category_slug': 'tls',
+    'category_id': 7,
     'order_in_category': 4,
 }

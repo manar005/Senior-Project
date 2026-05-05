@@ -10,8 +10,7 @@ challenge = {
     'flag': 'RETR_FILE_FLAG',
     'expected_outcome': 'Trace RETR to its data connection, extract file content, and verify which of the three candidates is the correct flag',
     'challenge_type': 'network',
-    'order_num': 24,
     'points': 150,
-    'category_slug': 'ftp',
+    'category_id': 4,
     'order_in_category': 5,
 }

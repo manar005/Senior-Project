@@ -9,8 +9,7 @@ challenge = {
     'expected_outcome': 'Learn how HTTP redirects work and how to trace a redirect chain in captured traffic to find the final response',
     'challenge_type': 'network',
     'hint': 'Look for 302 responses across different TCP streams. The redirect chain is interleaved with other requests. Right click a request → Follow → TCP Stream to follow the Location headers from stream to stream; the response that ends the chain contains the flag in the X-Flag header. The stream goes like this: entry → phase2 → verify → result with X-Flag.',
-    'order_num': 15,
     'points': 150,
-    'category_slug': 'http',
+    'category_id': 1,
     'order_in_category': 5,
 }
