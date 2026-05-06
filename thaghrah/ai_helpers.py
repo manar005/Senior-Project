@@ -54,6 +54,21 @@ def build_ai_hint(protocol: str, fragmentation: bool, encoding: str) -> str:
     return "\n".join(steps)
 
 
+def requested_bruteforce_from_prompt(prompt: str) -> bool:
+    """True when user asks for brute-force style login-attempt challenge."""
+    low = (prompt or "").lower()
+    signals = (
+        "bruteforce",
+        "brute force",
+        "password spray",
+        "credential stuffing",
+        "multiple login attempts",
+        "login attempts",
+        "many passwords",
+    )
+    return any(s in low for s in signals)
+
+
 def requested_encoding_from_prompt(prompt: str):
     low = (prompt or "").lower()
     negative = (

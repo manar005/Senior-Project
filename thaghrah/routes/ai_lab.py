@@ -12,6 +12,7 @@ from thaghrah.ai_helpers import (
     build_ai_hint,
     decode_with_encoding,
     encode_with_encoding,
+    requested_bruteforce_from_prompt,
     requested_encoding_from_prompt,
     requested_encryption_from_prompt,
     requested_fragmentation_from_prompt,
@@ -20,6 +21,83 @@ from thaghrah.challenge_utils import _flag_fingerprint, _resolve_ai_pcap_path
 from thaghrah.config import STATIC_DIR
 from thaghrah.database import get_db
 from thaghrah.decorators import login_required
+
+
+def _split_for_parts(value: str, count: int):
+    value = value or ""
+    count = max(2, min(16, int(count or 4)))
+    size = max(1, (len(value) + count - 1) // count)
+    parts = [value[i : i + size] for i in range(0, len(value), size)]
+    while len(parts) < count:
+        parts.append("")
+    return parts[:count]
+
+
+def _build_bruteforce_packets(protocol: str, display_flag: str, fragmentation: bool, fragment_count: int):
+    proto = (protocol or "TCP").strip().upper()
+    base = []
+
+    if proto in ("HTTP", "TLS"):
+        src = "192.168.10.10"
+        dst = "192.168.10.20"
+        base_sport = 51515
+        dport = "443" if proto == "TLS" else "80"
+        attempts = ["spring2024", "winter2024", "admin123", "letmein", "p@ssw0rd!"]
+        for i, pwd in enumerate(attempts, start=1):
+            sport = str(base_sport + i)
+            payload = f"POST /login attempt={i} username=operator password={pwd}"
+            if i < len(attempts):
+                payload += "\nLOGIN_SUCCESS=0"
+            else:
+                payload += f"\nLOGIN_SUCCESS=1\n{display_flag}"
+            base.append(
+                {
+                    "protocol": proto,
+                    "src_ip": src,
+                    "dst_ip": dst,
+                    "src_port": sport,
+                    "dst_port": dport,
+                    "payload": payload,
+                }
+            )
+    else:
+        src = "10.50.1.10"
+        dst = "10.50.1.20"
+        base_sport = 44444
+        dport = "2525" if proto == "SMTP" else "8080"
+        attempts = ["guest", "root", "operator", "analyst", "admin"]
+        for i, user in enumerate(attempts, start=1):
+            sport = str(base_sport + i)
+            payload = f"LOGIN_ATTEMPT={i}; user={user}; result={'FAIL' if i < len(attempts) else 'SUCCESS'}"
+            if i == len(attempts):
+                payload += f"\n{display_flag}"
+            base.append(
+                {
+                    "protocol": proto,
+                    "src_ip": src,
+                    "dst_ip": dst,
+                    "src_port": sport,
+                    "dst_port": dport,
+                    "payload": payload,
+                }
+            )
+
+    if fragmentation:
+        inner = extract_flag_inner_value(display_flag or "") or ""
+        parts = _split_for_parts(inner, fragment_count)
+        transfer = "bf001"
+        for i, part in enumerate(parts, start=1):
+            base.append(
+                {
+                    "protocol": proto,
+                    "src_ip": dst,
+                    "dst_ip": src,
+                    "src_port": dport,
+                    "dst_port": sport,
+                    "payload": f"part={i}; total={len(parts)}; transfer={transfer}; data={part}",
+                }
+            )
+    return base
 
 
 def register_routes(app):
@@ -49,6 +127,7 @@ def register_routes(app):
         encoding = str(payload.get("encoding") or "none").strip().lower() or "none"
         requested_encoding = requested_encoding_from_prompt(prompt)
         requested_encryption = requested_encryption_from_prompt(prompt)
+        requested_bruteforce = requested_bruteforce_from_prompt(prompt)
         must_encode_from_prompt = requested_encoding is not None
         force_encoded = bool(requested_encoding) or protocol in ("TLS", "HTTPS") or requested_encryption
         requested_fragmentation = requested_fragmentation_from_prompt(prompt)
@@ -134,12 +213,23 @@ def register_routes(app):
                         sep = "\n" if ptxt and not ptxt.endswith("\n") else ""
                         first["payload"] = f"{ptxt}{sep}XOR_KEY=23"
 
+        if requested_bruteforce:
+            pcap_plan = payload.get("pcap_plan") if isinstance(payload.get("pcap_plan"), dict) else {}
+            pcap_plan["packets"] = _build_bruteforce_packets(
+                payload.get("protocol"),
+                display_flag,
+                fragmentation,
+                fragment_count,
+            )
+            pcap_plan["scenario"] = "Bruteforce login attempts with exactly one successful attempt."
+            payload["pcap_plan"] = pcap_plan
+
         try:
             packets = build_packets_from_plan(
                 payload["pcap_plan"],
                 display_flag,
                 answer_flag,
-                fragmentation=fragmentation,
+                fragmentation=(fragmentation and not requested_bruteforce),
                 fragment_count=fragment_count,
                 encoding=encoding,
             )
@@ -147,6 +237,11 @@ def register_routes(app):
             return jsonify({"success": False, "message": "Could not build the capture file. Try again."}), 500
 
         hint = build_ai_hint(payload["protocol"], fragmentation, encoding)
+        if requested_bruteforce:
+            hint += (
+                "\nBruteforce focus: inspect repeated login attempts and identify the single successful attempt."
+                "\nThe successful attempt/response is the only one that carries the flag evidence."
+            )
 
         fname = make_ai_pcap_filename(session["user_id"])
         rel_pcap = f"pcaps/{fname}"
