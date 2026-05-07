@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Guide - Thaghrah{% endblock %}
+{% block body_class %}theme-cyber app-body page-guide{% endblock %}
+
+{% block extra_head %}
+{# Layout and typography are shared across all guide tabs; content shape is documented on guide() in thaghrah/routes/pages.py #}
+<style>
+.guide-shell { width: min(94vw, 1500px); margin: 0 auto; }
+.guide-layout { display: grid; grid-template-columns: 240px 1fr; gap: 1.1rem; align-items: stretch; }
+.guide-sidebar { align-self: start; padding: 1rem; border-radius: 16px; border: 1px solid rgba(125, 211, 252, 0.2); background: rgba(3, 9, 29, 0.55); }
+.guide-tab { display: block; width: 100%; margin-bottom: 0.5rem; padding: 0.78rem 0.95rem; border-radius: 10px; text-decoration: none; color: #dbeafe; border: 1px solid transparent; font-size: 1.32rem; font-weight: 700; }
+.guide-tab.active { background: rgba(56, 189, 248, 0.18); border-color: rgba(56, 189, 248, 0.55); color: #67e8f9; font-weight: 600; }
+/* Main reading panel only — sidebar tabs keep the dark theme */
+.guide-content { min-height: 0; padding: 1.6rem 1.9rem; border-radius: 16px; border: 1px solid rgba(15, 23, 42, 0.14); background: #e8ecf2; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); }
+.guide-content .guide-article { max-width: 1100px; }
+.guide-content .guide-article h3 { font-size: 2.7rem; margin-bottom: 1rem; color: #0f172a; }
+.guide-content .guide-article h4 { margin-top: 2.1rem; margin-bottom: 1.8rem; color: #0369a1; font-size: 1.72rem; }
+.guide-content .guide-article p { color: #1e293b; line-height: 1.76; margin: 0.55rem 0; font-size: 1.42rem; }
+.guide-content .guide-article ul { margin: 0.5rem 0 0.8rem 1.3rem; color: #1e293b; }
+.guide-content .guide-article li { margin: 0.3rem 0; font-size: 1.34rem; line-height: 1.64; }
+.guide-content .guide-article .guide-link { color: #0284c7; text-decoration: underline; }
+.guide-content .guide-article .guide-link:hover { color: #0369a1; }
+.guide-content .guide-image {
+  width: 100%; max-width: 700px; display: block; margin: 0.95rem auto 3rem; border-radius: 12px;
+  border: 2px solid rgba(15, 23, 42, 0.38); background: #fff; box-sizing: border-box;
+}
+.guide-content .guide-video-card {
+  max-width: 760px; margin: 0.9rem auto 3rem; border-radius: 12px;
+  border: 2px solid rgba(15, 23, 42, 0.38); background: #fff; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); box-sizing: border-box;
+}
+.guide-content .guide-video-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.7rem 0.9rem; border-bottom: 1px solid rgba(15, 23, 42, 0.1); background: #f8fafc; }
+.guide-content .guide-video-head--link-only { justify-content: flex-end; }
+.guide-content .guide-video-head span { color: #0f172a; font-weight: 700; font-size: 1.15rem; }
+.guide-content .guide-video-head .guide-link { font-size: 1.06rem; color: #0284c7; }
+.guide-content .guide-video-head .guide-link:hover { color: #0369a1; }
+.guide-content .guide-video-frame {
+  width: 100%; height: 360px; display: block; background: #000;
+  border: 0;
+  box-sizing: border-box;
+}
+/* Same bottom breathing room as .guide-image (3rem); don't stack extra top gap */
+.guide-content .guide-article p.guide-download-wrap { margin-top: 0; margin-bottom: 0.5rem; }
+.guide-content .guide-download-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: inherit;
+  font-size: 1.72rem;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #0369a1;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0.55rem 1.35rem;
+  border-radius: 10px;
+  border: 2px solid rgba(3, 105, 161, 0.45);
+  background: linear-gradient(180deg, #ffffff, #f0f7fc);
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.guide-content .guide-download-btn:hover {
+  color: #075985;
+  border-color: rgba(3, 105, 161, 0.65);
+  background: #e0f0fa;
+}
+.guide-content .guide-download-btn:focus-visible {
+  outline: 2px solid #0369a1;
+  outline-offset: 3px;
+}
+.guide-content .guide-empty { color: #334155; padding: 1.2rem; border: 1px dashed rgba(15, 23, 42, 0.2); border-radius: 12px; background: #dfe4ec; }
+/* Guide page: navbar + footer stay fixed; only the reading panel scrolls */
+body.page-guide {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+body.page-guide main.main-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+body.page-guide .login-page-galaxy.login-page-galaxy--guide {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding: 1rem 20px;
+}
+body.page-guide .login-page-galaxy.login-page-galaxy--guide .auth-container-over-galaxy {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body.page-guide .guide-shell.cyber-page-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body.page-guide .guide-shell.cyber-page-shell > .dashboard-header {
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr);
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-sidebar {
+  align-self: stretch;
+  position: static;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-content {
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-content::-webkit-scrollbar {
+  width: 10px;
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-content::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.28);
+  border-radius: 999px;
+}
+body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-content::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  body.page-guide {
+    height: auto;
+    max-height: none;
+    overflow: auto;
+  }
+  body.page-guide main.main-content {
+    overflow: visible;
+    min-height: unset;
+    display: block;
+    padding-bottom: 2rem;
+  }
+  body.page-guide .login-page-galaxy.login-page-galaxy--guide {
+    flex: unset;
+    min-height: calc(100vh - 180px);
+    max-height: none;
+    overflow: visible;
+    padding: 2rem 20px 4rem;
+  }
+  body.page-guide .login-page-galaxy.login-page-galaxy--guide .auth-container-over-galaxy {
+    overflow: visible;
+    min-height: unset;
+  }
+  body.page-guide .guide-shell.cyber-page-shell {
+    overflow: visible;
+    min-height: unset;
+    display: block;
+  }
+  body.page-guide .guide-shell.cyber-page-shell > .guide-layout {
+    overflow: visible;
+    min-height: unset;
+    grid-template-rows: none;
+  }
+  body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-sidebar {
+    position: sticky;
+    top: 76px;
+    max-height: none;
+    overflow-y: visible;
+  }
+  body.page-guide .guide-shell.cyber-page-shell > .guide-layout > .guide-content {
+    overflow-y: visible;
+    min-height: 18rem;
+  }
+  .guide-layout { grid-template-columns: 1fr; }
+  .guide-content .guide-video-frame { height: 300px; }
+  .guide-content .guide-image,
+  .guide-content .guide-video-card { max-width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page-galaxy login-page-galaxy--home login-page-galaxy--guide">
+    <div class="galaxy-bg" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-1" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-2" aria-hidden="true"></div>
+    <div class="stars-layer stars-layer-3" aria-hidden="true"></div>
+    <div class="auth-container-over-galaxy">
+        <div class="guide-shell cyber-page-shell">
+            <header class="dashboard-header">
+                <p class="section-chip">Reference center</p>
+                <h2>Guide</h2>
+                <p>Choose a protocol on the left to view its guide as readable sections.</p>
+            </header>
+
+            <section class="guide-layout">
+                <aside class="guide-sidebar">
+                    {% for tab in tabs %}
+                    <a href="{{ url_for('guide', tab=tab) }}"
+                       class="guide-tab {% if tab == selected_tab %}active{% endif %}">
+                        {{ tab }}
+                    </a>
+                    {% endfor %}
+                </aside>
+
+                <div class="guide-content">
+                    {% if page_content %}
+                    <div class="guide-article">
+                        <h3>{{ page_content.title }}</h3>
+                        {% for section in page_content.sections %}
+                        <h4>{{ section.heading }}</h4>
+                        {% for p in section.paragraphs %}
+                        <p>{{ p }}</p>
+                        {% set para_idx = loop.index0 %}
+                        {% if section.images %}
+                            {% for image in section.images %}
+                                {% set after_idx = image.image_after_paragraph if image.image_after_paragraph is defined else section.image_after_paragraph %}
+                                {% if after_idx is defined and after_idx == para_idx %}
+                                <img class="guide-image"
+                                     src="{{ url_for('static', filename=image.src) }}"
+                                     alt="{{ image.alt }}"
+                                     {% if image.max_width is defined %}style="max-width: {{ image.max_width }}px;"{% endif %}>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if section.bullets %}
+                        <ul>
+                            {% for item in section.bullets %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if section.links and not section.video %}
+                            {% for link in section.links %}
+                            <p><a class="guide-link" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a></p>
+                            {% endfor %}
+                        {% endif %}
+                        {% if section.video %}
+                        <div class="guide-video-card">
+                            <div class="guide-video-head {% if not section.video.card_title %}guide-video-head--link-only{% endif %}">
+                                {% if section.video.card_title %}
+                                <span>{{ section.video.card_title }}</span>
+                                {% endif %}
+                                <a class="guide-link" href="{{ section.video.watch_url }}" target="_blank" rel="noopener">Open on YouTube</a>
+                            </div>
+                            <iframe class="guide-video-frame"
+                                    src="{{ section.video.embed_url }}"
+                                    title="{{ section.video.title }}"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                        </div>
+                        {% endif %}
+                        {% if section.images and section.image_after_paragraph is not defined and not (section.images | selectattr('image_after_paragraph', 'defined') | list) %}
+                            {% for image in section.images %}
+                            <img class="guide-image"
+                                 src="{{ url_for('static', filename=image.src) }}"
+                                 alt="{{ image.alt }}"
+                                 {% if image.max_width is defined %}style="max-width: {{ image.max_width }}px;"{% endif %}>
+                            {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if pdf_available and selected_pdf %}
+                        <p class="guide-download-wrap">
+                            <a class="guide-download-btn"
+                               href="{{ url_for('static', filename=selected_pdf) }}"
+                               download="{{ pdf_download_name }}">Download Guide Here</a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="guide-empty">
+                        <p><strong>{{ selected_tab }}</strong> guide is not available yet.</p>
+                        <p>Send the text for this tab and I will render it here in page format.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

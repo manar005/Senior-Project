@@ -3,6 +3,46 @@
 {% block title %}AI challenge lab — Thaghrah{% endblock %}
 {% block body_class %}theme-cyber app-body{% endblock %}
 
+{% block extra_head %}
+<style>
+.ai-quick-prompts-label {
+    margin: 1rem 0 1rem;
+    color: #9befff;
+    font-weight: 700;
+}
+
+#ai-quick-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.ai-challenge-panel .challenge-section > .points-note:first-of-type {
+    margin-bottom: 1rem;
+}
+
+.theme-cyber .ai-preset-btn {
+    width: auto;
+    background: linear-gradient(135deg, #6ef7ff 0%, #25d4ff 52%, #10a5ff 100%);
+    color: #03131f;
+    border: 1px solid rgba(110, 247, 255, 0.32);
+    box-shadow: 0 10px 24px rgba(0, 166, 255, 0.2);
+    font-weight: 700;
+    padding: 10px 18px;
+}
+
+.theme-cyber .ai-preset-btn:hover {
+    background: linear-gradient(135deg, #6ef7ff 0%, #25d4ff 52%, #10a5ff 100%);
+    color: #03131f;
+    box-shadow: 0 8px 28px rgba(0, 245, 255, 0.35);
+    filter: brightness(1.08);
+    transform: translateY(-2px) scale(1.02);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="login-page-galaxy login-page-galaxy--home">
     <div class="galaxy-bg" aria-hidden="true"></div>
@@ -22,6 +62,13 @@
                 <section class="challenge-section">
                     <h3>Your prompt</h3>
                     <p class="points-note">Examples: “DNS exfiltration with Base64 chunks, medium difficulty” or “HTTP login brute force in a small office network.”</p>
+                    <p class="ai-quick-prompts-label">Ready Prompts:</p>
+                    <div id="ai-quick-prompts" class="form-group" aria-label="Quick prompt presets">
+                        <button type="button" class="btn btn-secondary ai-preset-btn" data-prompt="DNS traffic containing Base64-encoded employee credentials hidden inside outbound queries, medium difficulty">Base64</button>
+                        <button type="button" class="btn btn-secondary ai-preset-btn" data-prompt="ICMP traffic containing fragmented payloads that must be reassembled to recover hidden command instructions, hard difficulty">Fragmentation</button>
+                        <button type="button" class="btn btn-secondary ai-preset-btn" data-prompt="SMTP mail server configured with vulnerable encryption settings allowing interception of confidential emails, hard difficulty">Encryption</button>
+                        <button type="button" class="btn btn-secondary ai-preset-btn" data-prompt="HTTP login portal targeted by repeated bruteforce authentication attempts against administrator accounts, medium difficulty">Bruteforce</button>
+                    </div>
                     <div class="form-group">
                         <textarea id="ai-prompt" class="flag-input ai-prompt-input" rows="4" placeholder="Describe the challenge you want…" maxlength="4000"></textarea>
                     </div>
@@ -77,6 +124,7 @@
 (function() {
     const promptEl = document.getElementById('ai-prompt');
     const genBtn = document.getElementById('ai-generate-btn');
+    const presetBtns = document.querySelectorAll('.ai-preset-btn');
     const statusEl = document.getElementById('ai-generate-status');
     const workspace = document.getElementById('ai-challenge-workspace');
     let hintOpened = false;
@@ -86,6 +134,18 @@
         genBtn.disabled = loading;
         genBtn.textContent = loading ? 'Generating…' : 'Generate challenge';
     }
+
+    presetBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const presetPrompt = btn.getAttribute('data-prompt') || '';
+            promptEl.value = presetPrompt;
+            promptEl.focus();
+            const len = promptEl.value.length;
+            promptEl.setSelectionRange(len, len);
+            statusEl.textContent = '';
+            statusEl.className = 'flag-result';
+        });
+    });
 
     genBtn.addEventListener('click', async function() {
         const prompt = (promptEl.value || '').trim();
