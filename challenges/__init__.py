@@ -44,13 +44,20 @@ from .forensics.challenge_39 import challenge as challenge_39
 from .forensics.challenge_40 import challenge as challenge_40
 
 
-# challenge IDs remain unchanged, but files are protocol-sequentially renamed.
-# This table maps DB challenge id (1..40) -> challenge_XX static file suffix.
+# Static PCAP filenames use ``challenge_%02d`` where ``%02d`` is a permutation of 1..40.
+# CHALLENGE_PCAP_SUFFIXES[db_id - 1] is that suffix for ``challenges.id == db_id``.
 CHALLENGE_PCAP_SUFFIXES = (
     1, 6, 11, 16, 21, 26, 7, 8, 9, 36,
     37, 2, 3, 4, 5, 31, 10, 12, 13, 14,
     15, 17, 18, 19, 20, 22, 23, 24, 25, 27,
     28, 29, 30, 32, 33, 34, 35, 38, 39, 40,
+)
+
+# For ``challenge_01`` … ``challenge_40`` (list order of ``get_network_challenges()``),
+# static assets use ``challenge_{suffix}.pcapng`` with this suffix (matches source filenames).
+STATIC_SUFFIX_BY_VARIABLE_INDEX = (
+    1, 6, 11, 16, 21, 26, 7, 8, 9, 36, 37, 2, 3, 4, 5, 31, 10, 12, 13, 14,
+    15, 17, 18, 19, 20, 22, 23, 24, 25, 27, 28, 29, 30, 32, 33, 34, 35, 38, 39, 40,
 )
 
 _DISPLAY_TO_CHALLENGE_ID = {
@@ -75,6 +82,22 @@ def challenge_id_for_display_number(display_number: int):
     if not isinstance(display_number, int):
         return None
     return _DISPLAY_TO_CHALLENGE_ID.get(display_number)
+
+
+def variable_index_for_static_suffix(suffix: int) -> int:
+    """1-based index into ``get_network_challenges()`` for static ``challenge_{suffix}`` assets."""
+    if suffix not in STATIC_SUFFIX_BY_VARIABLE_INDEX:
+        raise ValueError(f"unknown static suffix: {suffix}")
+    return STATIC_SUFFIX_BY_VARIABLE_INDEX.index(suffix) + 1
+
+
+def challenge_dict_for_db_id(db_id: int):
+    """Challenge metadata dict for ``challenges.id`` (matches PCAP/key naming via CHALLENGE_PCAP_SUFFIXES)."""
+    if not isinstance(db_id, int) or db_id < 1 or db_id > len(CHALLENGE_PCAP_SUFFIXES):
+        raise ValueError(f"db_id must be 1..{len(CHALLENGE_PCAP_SUFFIXES)}")
+    suffix = CHALLENGE_PCAP_SUFFIXES[db_id - 1]
+    vi = variable_index_for_static_suffix(suffix)
+    return get_network_challenges()[vi - 1]
 
 
 def get_network_challenges():

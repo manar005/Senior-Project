@@ -1,5 +1,5 @@
 """
-Challenge 6: Network Protocol Identification
+Challenge 26: Network Protocol Identification
 Category: SMTP
 """
 challenge = {

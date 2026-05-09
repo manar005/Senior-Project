@@ -1,8 +1,6 @@
 """
-Challenge 27: ICMP Echo Identifier and Sequence
+Challenge 23: ICMP Echo Identifier and Sequence
 Category: ICMP
-
-Find the identifier or sequence number in an ICMP Echo Request/Reply.
 """
 challenge = {
     'title': 'ICMP Echo Identifier and Sequence',

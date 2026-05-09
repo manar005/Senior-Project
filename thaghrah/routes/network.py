@@ -2,8 +2,6 @@ import time
 
 from flask import current_app, jsonify, redirect, render_template, request, session, url_for
 
-import db_queries
-from ai_challenge_utils import parse_bool
 from challenges import (
     challenge_id_for_display_number,
     display_number_for_challenge_id,
@@ -11,7 +9,11 @@ from challenges import (
     pcap_suffix_for_challenge_id,
 )
 
-from thaghrah.challenge_utils import (
+from thaghrah.ai.challenge_payload import parse_bool
+from thaghrah.auth.decorators import login_required
+from thaghrah.core.constants import PROTOCOL_NAMES
+from thaghrah.db import get_db, queries as db_queries
+from thaghrah.domain.challenge_utils import (
     _flag_fingerprint,
     check_and_award_badges,
     get_protocol_details,
@@ -19,9 +21,6 @@ from thaghrah.challenge_utils import (
     network_flag_match,
     protocol_guide_pdf_rel_path,
 )
-from thaghrah.constants import PROTOCOL_NAMES
-from thaghrah.database import get_db
-from thaghrah.decorators import login_required
 
 
 def register_routes(app):
@@ -234,7 +233,7 @@ def register_routes(app):
                     used_hint=used_hint,
                     points_earned=points_earned,
                 )
-                new_badges = check_and_award_badges(session["user_id"], challenge_id)
+                new_badges = check_and_award_badges(session["user_id"])
                 if new_badges:
                     badge_names = [badge["name"] for badge in new_badges]
                     badge_message = f' 🏆 Badge earned: {", ".join(badge_names)}!'

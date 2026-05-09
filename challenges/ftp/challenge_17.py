@@ -1,7 +1,6 @@
 """
-Challenge 22: FTP CWD Path – Base64 + Reversed (control only)
+Challenge 17: FTP CWD Path – Base64 + Reversed (control only)
 Category: FTP
-Level 2: CWD argument is Base64(reversed flag); decode then reverse to get flag.
 """
 challenge = {
     'title': 'FTP CWD Path',

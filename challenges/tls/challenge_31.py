@@ -1,9 +1,6 @@
 """
-Challenge 16: TLS Decryption
+Challenge 31: TLS Decryption
 Category: TLS
-
-Traffic in the pcap is encrypted with TLS. The private key is provided so solvers
-can decrypt the session in Wireshark and read the full message (the flag).
 """
 challenge = {
     'title': 'TLS Decryption',

@@ -1,8 +1,6 @@
 """
-Challenge 29: ICMP Type Message
+Challenge 25: ICMP Type Message
 Category: ICMP
-
-A sequence of ICMP packets was sent; the ICMP type of each packet (in order) spells a secret word when interpreted as ASCII.
 """
 challenge = {
     'title': 'ICMP Type Message',

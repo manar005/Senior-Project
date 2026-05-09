@@ -1,9 +1,6 @@
 """
-Challenge 21: DNS CNAME and TXT (Combine)
+Challenge 15: DNS CNAME and TXT (Combine)
 Category: DNS
-
-A single DNS response contains two answer records: a CNAME and a TXT.
-The flag is formed by combining both—decode the CNAME target, then append the TXT value.
 """
 challenge = {
     'title': 'DNS CNAME and TXT (Combine)',

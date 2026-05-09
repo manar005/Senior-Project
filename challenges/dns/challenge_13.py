@@ -1,9 +1,6 @@
 """
-Challenge 19: DNS TXT Record (Multiple Chunks)
+Challenge 13: DNS TXT Record (Multiple Chunks)
 Category: DNS
-
-A DNS response contains a TXT record whose value is split into multiple character-string
-chunks. Concatenate the chunks in order to get the flag.
 """
 challenge = {
     'title': 'DNS TXT Record (Multiple Chunks)',

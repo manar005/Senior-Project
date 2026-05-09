@@ -2,44 +2,46 @@
 
 Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save files under `static/pcaps/` as `challenge_XX.pcapng` (e.g. `challenge_01.pcapng`).
 
-**Quick reference:** Run all scripts from the **project root**: `python3 scripts/<script_name>.py` (or `python` on Windows). Most scripts expect you to start a Wireshark capture on loopback **before** running the script, then save as `static/pcaps/challenge_XX.pcapng`. **Exceptions:** `forensics_challenge38_icmp_exfil.py`, `forensics_challenge39_http_beacon.py`, and `forensics_challenge40_multiprotocol.py` use Scapy and **write** `static/pcaps/challenge_{38,39,40}.pcapng` directly (requires `pip install scapy`).
+**Script naming:** Files follow `protocol_challengeNN.py` where **NN** matches `static/pcaps/challenge_NN.pcapng` (same **NN** as the download link in the app). Curriculum step numbers in prose below may differ from **NN**; always save using the **NN** that matches your challenge’s pcap.
+
+**Quick reference:** Run all scripts from the **project root**: `python3 scripts/<script_name>.py` (or `python` on Windows). Most scripts expect you to start a Wireshark capture on loopback **before** running the script, then save as `static/pcaps/challenge_XX.pcapng`. **Exceptions:** `forensics_challenge38.py`, `forensics_challenge39.py`, and `forensics_challenge40.py` use Scapy and **write** `static/pcaps/challenge_{38,39,40}.pcapng` directly (requires `pip install scapy`).
 
 ### Step-by-step index
 
 | # | Challenge | Script |
 |---|-----------|--------|
-| 1 | HTTP Flag in Header | `flag_server_challenge01.py` + curl/browser |
-| 2 | TCP Destination Port | `port_server_challenge02.py` + curl |
-| 3 | DNS Query Flag | `dns_query_challenge03.py` |
-| 4 | FTP Credential Extraction | `ftp_credentials_challenge04.py` |
-| 5 | ICMP Packet Analysis | `icmp_ping_challenge05.py` |
-| 6 | SMTP Protocol | `smtp_protocol_challenge06.py` |
-| 7 | TCP Handshake Count | `tcp_handshakes_challenge07.py` |
-| 8 | TCP Fragmentation | `tcp_fragmented_flag_challenge08.py` |
-| 9 | Image Flag | `tcp_fragmented_image_challenge09.py` |
-| 10 | DNS Exfiltration | `dns_exfil_challenge10.py` |
-| 11 | HTTP Login Brute Force | `http_bruteforce_challenge11.py` |
-| 38 | Forensics ICMP exfil | `forensics_challenge38_icmp_exfil.py` (scapy → pcap) |
-| 39 | Forensics DNS → HTTP staging | `forensics_challenge39_http_beacon.py` (scapy → pcap) |
-| 40 | Forensics DNS + HTTP (2-part) | `forensics_challenge40_multiprotocol.py` (scapy → pcap) |
-| 12 | HTTP Status Code | `http_status_challenge12.py` |
-| 13 | HTTP Request Method | `http_method_challenge13.py` |
-| 14 | HTTP Cookie | `http_cookie_challenge14.py` |
-| 15 | HTTP Redirect Chain | `http_redirect_challenge15.py` |
-| 16 | TLS Decryption | `tls_decrypt_challenge16.py` |
-| 17 | Port-Knock Flag | `port_knock_challenge17.py` |
-| 18 | DNS TXT Response | `dns_txt_challenge18.py` |
-| 19 | DNS TXT Chunks | `dns_txt_chunks_challenge19.py` |
-| 20 | DNS CNAME | `dns_cname_challenge20.py` |
-| 21 | DNS CNAME and TXT | `dns_cname_txt_challenge21.py` |
-| 22 | FTP CWD Reversed | `ftp_reply_flag_challenge22.py` |
-| 23 | FTP PASV Data | `ftp_pasv_data_challenge23.py` |
-| 24 | FTP RETR File | `ftp_retr_file_challenge24.py` |
-| 25 | FTP Rename (RNFR/RNTO) | `ftp_anonymous_challenge25.py` |
-| 26 | ICMP Type and Code | `icmp_type_code_challenge26.py` (sudo + scapy) |
-| 27 | ICMP Echo Identifier | `icmp_echo_id_challenge27.py` (sudo + scapy) |
-| 28 | Multiple ICMP Types | `icmp_mixed_types_challenge28.py` (sudo + scapy) |
-| 29 | ICMP Type Message | `icmp_type_message_challenge29.py` (sudo + scapy) |
+| 1 | HTTP Flag in Header | `http_challenge01.py` + curl/browser |
+| 2 | TCP Destination Port | `tcp_challenge06.py` + curl |
+| 3 | DNS Query Flag | `dns_challenge11.py` |
+| 4 | FTP Credential Extraction | `ftp_challenge16.py` |
+| 5 | ICMP Packet Analysis | `icmp_challenge21.py` |
+| 6 | SMTP Protocol | `smtp_challenge26.py` |
+| 7 | TCP Handshake Count | `tcp_challenge07.py` |
+| 8 | TCP Fragmentation | `tcp_challenge08.py` |
+| 9 | Image Flag | `tcp_challenge09.py` |
+| 10 | DNS Exfiltration | `forensics_challenge36.py` |
+| 11 | HTTP Login Brute Force | `forensics_challenge37.py` |
+| 38 | Forensics ICMP exfil | `forensics_challenge38.py` (scapy → pcap) |
+| 39 | Forensics DNS → HTTP staging | `forensics_challenge39.py` (scapy → pcap) |
+| 40 | Forensics DNS + HTTP (2-part) | `forensics_challenge40.py` (scapy → pcap) |
+| 12 | HTTP Status Code | `http_challenge02.py` |
+| 13 | HTTP Request Method | `http_challenge03.py` |
+| 14 | HTTP Cookie | `http_challenge04.py` |
+| 15 | HTTP Redirect Chain | `http_challenge05.py` |
+| 16 | TLS Decryption | `tls_challenge31.py` |
+| 17 | Port-Knock Flag | `tcp_challenge10.py` |
+| 18 | DNS TXT Response | `dns_challenge12.py` |
+| 19 | DNS TXT Chunks | `dns_challenge13.py` |
+| 20 | DNS CNAME | `dns_challenge14.py` |
+| 21 | DNS CNAME and TXT | `dns_challenge15.py` |
+| 22 | FTP CWD Reversed | `ftp_challenge17.py` |
+| 23 | FTP PASV Data | `ftp_challenge18.py` |
+| 24 | FTP RETR File | `ftp_challenge19.py` |
+| 25 | FTP Rename (RNFR/RNTO) | `ftp_challenge20.py` |
+| 26 | ICMP Type and Code | `icmp_challenge22.py` (sudo + scapy) |
+| 27 | ICMP Echo Identifier | `icmp_challenge23.py` (sudo + scapy) |
+| 28 | Multiple ICMP Types | `icmp_challenge24.py` (sudo + scapy) |
+| 29 | ICMP Type Message | `icmp_challenge25.py` (sudo + scapy) |
 
 ---
 
@@ -52,7 +54,7 @@ Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the server** (from the project root); leave it running:
    ```bash
-   python3 scripts/flag_server_challenge01.py
+   python3 scripts/http_challenge01.py
    ```
    The server listens on **127.0.0.1:8765** and sends the flag in the **FLAG** response header.
 3. **In another terminal**, request the page (or use a browser):
@@ -78,14 +80,14 @@ Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the server** (from the project root); leave it running:
    ```bash
-   python3 scripts/port_server_challenge02.py
+   python3 scripts/tcp_challenge06.py
    ```
    The server listens on **127.0.0.1:8080**.
 3. **In another terminal**, connect (e.g. with curl or browser):
    ```bash
    curl http://127.0.0.1:8080/
    ```
-4. **Stop the capture** and **save** as **`static/pcaps/challenge_02.pcapng`**. Stop the server (Ctrl+C).
+4. **Stop the capture** and **save** as **`static/pcaps/challenge_06.pcapng`**. Stop the server (Ctrl+C).
 
 ### What to check
 
@@ -102,10 +104,10 @@ Capture on **loopback** (e.g. `127.0.0.1` / Loopback adapter) unless noted. Save
 1. **Start Wireshark** and begin a capture on the **loopback** interface (or the interface your DNS uses; if you use a local resolver, capture there).
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_query_challenge03.py
+   python3 scripts/dns_challenge11.py
    ```
    The script performs a **getaddrinfo** for a domain like **FLAG.**\<base64\>**.local**. The second label is Base64-encoded "dns.query.flag".
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_03.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_11.pcapng`**.
 
 ### What to check
 
@@ -127,11 +129,11 @@ If your system resolver sends DNS to a remote server, capture on the interface t
 1. **Start Wireshark** and begin a capture on the loopback interface (e.g. **Loopback** or **Adapter for loopback traffic**).
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/ftp_credentials_challenge04.py
+   python scripts/ftp_challenge16.py
    ```
    The script starts a minimal FTP server on `127.0.0.1:2121`, then an FTP client connects and logs in with **ADMIN** / **SECRET123**. The whole run is short (about a second).
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_04.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_16.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -141,7 +143,7 @@ If your system resolver sends DNS to a remote server, capture on the interface t
 
 ### Port note
 
-The script uses port **2121** so it does not require administrator/root. If something else uses 2121, change `PORT` in `scripts/ftp_credentials_challenge04.py`.
+The script uses port **2121** so it does not require administrator/root. If something else uses 2121, change `PORT` in `scripts/ftp_challenge16.py`.
 
 ---
 
@@ -154,11 +156,11 @@ The script uses port **2121** so it does not require administrator/root. If some
 1. **Start Wireshark** and begin a capture on the **loopback** interface (e.g. **Loopback** or **Adapter for loopback traffic**).
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/icmp_ping_challenge05.py
+   python scripts/icmp_challenge21.py
    ```
    The script sends one ping (ICMP Echo Request, type 8) to `127.0.0.1`.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_05.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_21.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -180,11 +182,11 @@ On some systems, ICMP to 127.0.0.1 may be handled internally and not appear on t
 1. **Start Wireshark** and begin a capture on the **loopback** interface (e.g. **Loopback** or **Adapter for loopback traffic**).
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/smtp_protocol_challenge06.py
+   python scripts/smtp_challenge26.py
    ```
    The script starts a minimal SMTP server on `127.0.0.1:2525`, then a client connects and sends HELO and QUIT (SMTP dialog).
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_06.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_26.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -207,7 +209,7 @@ The script uses port **2525** (SMTP alternate) so it does not require administra
 1. **Start Wireshark** and begin a capture on the **loopback** interface (e.g. **Loopback** or **Adapter for loopback traffic**).
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/tcp_handshakes_challenge07.py
+   python scripts/tcp_challenge07.py
    ```
    The script opens **3 TCP connections** to **127.0.0.1:9999** (server accepts 3, then exits). Each connection produces one complete three-way handshake (SYN → SYN,ACK → ACK).
 3. **Stop the capture** in Wireshark.
@@ -229,7 +231,7 @@ The script uses port **2525** (SMTP alternate) so it does not require administra
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/tcp_fragmented_flag_challenge08.py
+   python scripts/tcp_challenge08.py
    ```
    The script opens **4 separate TCP connections** to **127.0.0.1:8888**; each connection sends one fragment (REAS, SEMB, LE_M, E). So each "Follow TCP Stream" shows only one fragment.
 3. **Stop the capture** in Wireshark.
@@ -251,7 +253,7 @@ The script uses port **2525** (SMTP alternate) so it does not require administra
 2. **Install Pillow** if needed: `pip install Pillow`
 3. **Run the script** (from the project root):
    ```bash
-   python scripts/tcp_fragmented_image_challenge09.py
+   python scripts/tcp_challenge09.py
    ```
    The script creates a small PNG image displaying the flag and sends it over **one TCP connection** to **127.0.0.1:9998**.
 4. **Stop the capture** in Wireshark.
@@ -277,10 +279,10 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_exfil_challenge10.py
+   python3 scripts/forensics_challenge36.py
    ```
    The script runs a minimal DNS server on **127.0.0.1:53535** and a client that queries several domains; one query contains a subdomain that is Base64-encoded "NETWORK_EXFILTRATION_DETECTED" (without padding).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_10.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_36.pcapng`**.
 
 ### What to check
 
@@ -297,11 +299,11 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/http_bruteforce_challenge11.py
+   python scripts/forensics_challenge37.py
    ```
    The script starts a simple HTTP server on `127.0.0.1:8081` with a `/login` endpoint, then a client sends several `POST /login` requests with different passwords for the **operator** user. Several attempts return `401 Invalid credentials.`; one attempt (the 5th) with the correct password returns `200 Login successful. Welcome, operator!` Two more failed attempts follow after the success.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_11.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_37.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -321,7 +323,7 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Requires** `scapy` (`pip install scapy` or install project requirements).
 2. From the project root, generate the capture (writes **`static/pcaps/challenge_38.pcapng`** directly):
    ```bash
-   python scripts/forensics_challenge38_icmp_exfil.py
+   python scripts/forensics_challenge38.py
    ```
 
 ### What to check
@@ -339,7 +341,7 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Requires** `scapy`.
 2. From the project root:
    ```bash
-   python scripts/forensics_challenge39_http_beacon.py
+   python scripts/forensics_challenge39.py
    ```
    Writes **`static/pcaps/challenge_39.pcapng`**.
 
@@ -360,7 +362,7 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Requires** `scapy`.
 2. From the project root:
    ```bash
-   python scripts/forensics_challenge40_multiprotocol.py
+   python scripts/forensics_challenge40.py
    ```
    Writes **`static/pcaps/challenge_40.pcapng`**.
 
@@ -381,11 +383,11 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/http_status_challenge12.py
+   python scripts/http_challenge02.py
    ```
    The script starts an HTTP server on `127.0.0.1:8776`. A client requests `/`, `/about`, `/missing`, and `/index`. The server returns **200** for `/`, `/about`, and `/index`; it returns **404** for `/missing`.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_12.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_02.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -402,11 +404,11 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/http_method_challenge13.py
+   python scripts/http_challenge03.py
    ```
    The script starts an HTTP server on `127.0.0.1:8777`. A client sends **GET /** and **GET /page**, then **POST /submit**. The response to **POST /submit** contains the flag **Base64-encoded** in the X-Flag header and body.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_13.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_03.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -423,11 +425,11 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/http_cookie_challenge14.py
+   python scripts/http_challenge04.py
    ```
    The script starts an HTTP server on `127.0.0.1:8778` with a `/login` endpoint. A client sends several `POST /login` requests with username **admin** and different passwords. Failed attempts return **401** with no Set-Cookie; the successful attempt (4th) returns **200** with **Set-Cookie: session=COOKIE_SESSION_FLAG; Path=/; HttpOnly**.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_14.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_04.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -446,11 +448,11 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/http_redirect_challenge15.py
+   python scripts/http_challenge05.py
    ```
    The script starts an HTTP server on `127.0.0.1:8779`. The client sends **separate connections** in this order: **GET /entry** (302 → /phase2), **GET /about** (200), **GET /phase2** (302 → /verify), **GET /help** (200), **GET /verify** (302 → /result), **GET /contact** (200), **GET /result** (200 with **X-Flag: REDIRECT_FINAL**). So /about and /help appear in between the redirect steps; the chain is spread across streams.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_15.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_05.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -467,14 +469,14 @@ The script uses port **9998** so it does not conflict with challenge 8 (port 888
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/tls_decrypt_challenge16.py
+   python3 scripts/tls_challenge31.py
    ```
-   The script generates a key/cert if needed, starts a TLS server on **127.0.0.1:9443**, and a client connects to receive the flag. The private key is written to **static/keys/challenge_16_private.pem** (for solvers to download).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_16.pcapng`**.
+   The script generates a key/cert if needed, starts a TLS server on **127.0.0.1:9443**, and a client connects to receive the flag. The private key is written to **static/keys/challenge_31_private.pem** (for solvers to download).
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_31.pcapng`**.
 
 ### What to check
 
-- In Wireshark: **Edit → Preferences → Protocols → TLS → RSA keys list** → Add: IP **127.0.0.1**, Port **9443**, Protocol **http**, Key file **static/keys/challenge_16_private.pem**. Reload the pcap; the TLS stream decrypts. The application data contains **FLAG: TLS_DECRYPT_16**. Submit **TLS_DECRYPT_16**.
+- In Wireshark: **Edit → Preferences → Protocols → TLS → RSA keys list** → Add: IP **127.0.0.1**, Port **9443**, Protocol **http**, Key file **static/keys/challenge_31_private.pem**. Reload the pcap; the TLS stream decrypts. The application data contains **FLAG: TLS_DECRYPT_16**. Submit **TLS_DECRYPT_16**.
 
 ### Note
 
@@ -491,11 +493,11 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python scripts/port_knock_challenge17.py
+   python scripts/tcp_challenge10.py
    ```
    The script tries to connect to **127.0.0.1** on a sequence of ports (75, 78, 79, 67, 75, 95, 79, 80, 69, 78). No server is listening, so each attempt sends a **TCP SYN** and then gets RST or times out. The **destination port** of each SYN, in packet order, is the ASCII code for **K N O C K _ O P E N**.
 3. **Stop the capture** in Wireshark.
-4. **Save** the capture as **`static/pcaps/challenge_17.pcapng`** (File → Save As…).
+4. **Save** the capture as **`static/pcaps/challenge_10.pcapng`** (File → Save As…).
 
 ### What to check
 
@@ -513,10 +515,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_txt_challenge18.py
+   python3 scripts/dns_challenge12.py
    ```
    The script runs a minimal DNS server on **127.0.0.1:5300** that responds to a query with a TXT record containing the flag.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_18.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_12.pcapng`**.
 
 ### What to check
 
@@ -533,10 +535,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_txt_chunks_challenge19.py
+   python3 scripts/dns_challenge13.py
    ```
    The script runs a DNS server on **127.0.0.1:5301** that responds with TXT record(s) containing the flag (possibly split across labels/records).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_19.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_13.pcapng`**.
 
 ### What to check
 
@@ -553,10 +555,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_cname_challenge20.py
+   python3 scripts/dns_challenge14.py
    ```
    The script runs a DNS server on **127.0.0.1:5302** that responds with CNAME (and possibly other) records.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_20.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_14.pcapng`**.
 
 ### What to check
 
@@ -573,10 +575,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/dns_cname_txt_challenge21.py
+   python3 scripts/dns_challenge15.py
    ```
    The script runs a DNS server on **127.0.0.1:5303** that responds with CNAME and TXT records.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_21.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_15.pcapng`**.
 
 ### What to check
 
@@ -593,10 +595,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/ftp_reply_flag_challenge22.py
+   python3 scripts/ftp_challenge17.py
    ```
    The script runs an FTP server on **127.0.0.1:2121**; a client logs in and sends **CWD** with a Base64-encoded reversed flag.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_22.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_17.pcapng`**.
 
 ### What to check
 
@@ -613,10 +615,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/ftp_pasv_data_challenge23.py
+   python3 scripts/ftp_challenge18.py
    ```
    The script runs an FTP server on **127.0.0.1:2121** (control). Client uses **PASV** then **LIST**; the flag is sent on the **data** connection (port in 227 reply).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_23.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_18.pcapng`**.
 
 ### What to check
 
@@ -633,10 +635,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/ftp_retr_file_challenge24.py
+   python3 scripts/ftp_challenge19.py
    ```
    The script runs an FTP server that serves a file via **RETR**; the file content contains the flag (and possibly other strings; only **RETR_FILE_FLAG** is accepted).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_24.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_19.pcapng`**.
 
 ### What to check
 
@@ -653,10 +655,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Run the script** (from the project root):
    ```bash
-   python3 scripts/ftp_anonymous_challenge25.py
+   python3 scripts/ftp_challenge20.py
    ```
    The script runs an FTP server; client sends **RNFR**/ **RNTO** commands; one RNTO argument is Base64-encoded flag.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_25.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_20.pcapng`**.
 
 ### What to check
 
@@ -674,10 +676,10 @@ Requires **OpenSSL** for key generation. The script uses TLS 1.2 with RSA key ex
 2. **Install Scapy** if needed: `pip3 install scapy` (on macOS use `pip3`; on Windows you may use `pip`). On macOS/Linux, **raw sockets** often require **sudo**.
 3. **Run the script** (from the project root):
    ```bash
-   sudo python3 scripts/icmp_type_code_challenge26.py
+   sudo python3 scripts/icmp_challenge22.py
    ```
    The script sends **one** ICMP packet with Type=3, Code=1 to 127.0.0.1.
-4. **Stop the capture** and **save** as **`static/pcaps/challenge_26.pcapng`**.
+4. **Stop the capture** and **save** as **`static/pcaps/challenge_22.pcapng`**.
 
 ### What to check
 
@@ -700,10 +702,10 @@ If you cannot use sudo/scapy, create the pcap manually in Wireshark: **File → 
 2. **Install Scapy** if needed: `pip3 install scapy`. Run with **sudo** on macOS/Linux.
 3. **Run the script** (from the project root):
    ```bash
-   sudo python3 scripts/icmp_echo_id_challenge27.py
+   sudo python3 scripts/icmp_challenge23.py
    ```
    The script sends one ICMP Echo Request with **Identifier=2048** to 127.0.0.1; the OS usually replies with Echo Reply using the same Identifier.
-4. **Stop the capture** and **save** as **`static/pcaps/challenge_27.pcapng`**.
+4. **Stop the capture** and **save** as **`static/pcaps/challenge_23.pcapng`**.
 
 ### What to check
 
@@ -720,10 +722,10 @@ If you cannot use sudo/scapy, create the pcap manually in Wireshark: **File → 
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Install Scapy** and run with **sudo** (from the project root):
    ```bash
-   sudo python3 scripts/icmp_mixed_types_challenge28.py
+   sudo python3 scripts/icmp_challenge24.py
    ```
    The script sends: 3× Type 11 (Time Exceeded), 2× Type 8 (Echo Request), 2× Type 0 (Echo Reply), 2× Type 3 (Dest Unreachable).
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_28.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_24.pcapng`**.
 
 ### What to check
 
@@ -740,10 +742,10 @@ If you cannot use sudo/scapy, create the pcap manually in Wireshark: **File → 
 1. **Start Wireshark** and begin a capture on the **loopback** interface.
 2. **Install Scapy** and run with **sudo** (from the project root):
    ```bash
-   sudo python3 scripts/icmp_type_message_challenge29.py
+   sudo python3 scripts/icmp_challenge25.py
    ```
    The script sends 8 ICMP packets whose **Type** field values are the ASCII codes for **I C M P _ M S G**.
-3. **Stop the capture** and **save** as **`static/pcaps/challenge_29.pcapng`**.
+3. **Stop the capture** and **save** as **`static/pcaps/challenge_25.pcapng`**.
 
 ### What to check
 

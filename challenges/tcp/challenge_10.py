@@ -1,9 +1,6 @@
 """
-Challenge 17: Port-Knock Flag
+Challenge 10: Port-Knock Flag
 Category: TCP
-
-A series of TCP SYN packets were sent to different destination ports in order.
-The port numbers, when read as ASCII codes in packet order, spell the flag.
 """
 challenge = {
     'title': 'Port-Knock Flag',

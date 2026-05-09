@@ -1,9 +1,12 @@
 """
-Generate pcaps for SMTP challenges 6 and 30–33 on 127.0.0.1:2525.
+Generate pcaps for SMTP-related rows on 127.0.0.1:2525.
+
+Output files use **pcap suffix** numbers (same as `challenge_NN.pcapng` in the app):
+**26–30** map to `challenges/smtp/challenge_26.py` … `challenge_30.py`.
 
 Run from project root:
-  python3 scripts/generate_smtp_pcaps.py           # all
-  python3 scripts/generate_smtp_pcaps.py 30 31   # subset
+  python3 scripts/generate_smtp_pcaps.py              # all (26–30)
+  python3 scripts/generate_smtp_pcaps.py 27 28      # subset by suffix
 
 Requires: tshark or dumpcap or tcpdump (Wireshark on macOS). OpenSSL not required.
 
@@ -148,7 +151,7 @@ def _send(conn: socket.socket, data: bytes) -> None:
     conn.sendall(data)
 
 
-# --- Scenario 6 (same as smtp_protocol_challenge06.py) ---
+# --- Pcap suffix 26 (same traffic as smtp_challenge26.py / protocol identification) ---
 
 def session_06():
     def server():
@@ -340,17 +343,17 @@ def session_33():
 
 
 ALL_SESSIONS = {
-    6: session_06,
-    30: session_30,
-    31: session_31,
-    32: session_32,
-    33: session_33,
+    26: session_06,
+    27: session_30,
+    28: session_31,
+    29: session_32,
+    30: session_33,
 }
 
 
 def main():
     args = [int(a) for a in sys.argv[1:] if a.isdigit()]
-    targets = args if args else [6, 30, 31, 32, 33]
+    targets = args if args else [26, 27, 28, 29, 30]
     for n in targets:
         if n not in ALL_SESSIONS:
             print("Unknown challenge:", n, file=sys.stderr)

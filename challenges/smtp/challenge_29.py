@@ -1,5 +1,5 @@
 """
-Challenge 32: SMTP (4/5)
+Challenge 29: SMTP Header Extraction
 Category: SMTP
 """
 challenge = {

@@ -1,5 +1,5 @@
 """
-Challenge 3: DNS Query Investigation
+Challenge 11: DNS Query Investigation
 Category: DNS
 """
 challenge = {

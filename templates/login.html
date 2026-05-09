@@ -18,10 +18,6 @@
             {% if error %}
             <div class="alert alert-error">{{ error }}</div>
             {% endif %}
-            {% if success %}
-            <div class="alert alert-success">Your password has been reset. You can sign in with your new password.</div>
-            {% endif %}
-            
             <form method="POST" action="{{ url_for('login') }}" class="auth-form">
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -35,7 +31,6 @@
             </form>
             
             <p class="auth-link">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
-            <p class="auth-link"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
         </div>
     </div>
 </div>

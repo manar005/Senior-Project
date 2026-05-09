@@ -1,5 +1,5 @@
 """
-Challenge 31: SMTP (3/5)
+Challenge 28: SMTP Reply Code
 Category: SMTP
 """
 challenge = {

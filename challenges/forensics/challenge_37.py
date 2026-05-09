@@ -1,5 +1,5 @@
 """
-Challenge 11: HTTP Login Brute Force
+Challenge 37: HTTP Login Brute Force
 Category: Forensics
 """
 challenge = {

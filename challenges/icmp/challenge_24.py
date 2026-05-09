@@ -1,8 +1,6 @@
 """
-Challenge 28: Multiple ICMP Types
+Challenge 24: Multiple ICMP Types
 Category: ICMP
-
-A capture contains several different ICMP message types; identify the one that appears a given number of times.
 """
 challenge = {
     'title': 'Multiple ICMP Types',

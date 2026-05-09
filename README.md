@@ -8,7 +8,7 @@ Students register, work through **forty curated challenges** grouped into **eigh
 
 Beyond the fixed curriculum, **AI Lab** lets authenticated users describe a scenario in plain language. An LLM-backed pipeline proposes a unique challenge plan; the server materializes a **downloadable PCAP**, learning objective, hint, and flag so learners can practice analysis with fresh traffic. Completing **all forty network challenges** triggers a **full-screen celebration** (confetti and congratulations) with a **Return to home** action—no timed redirect, so the learner can dismiss when ready.
 
-The system is implemented as a **Flask** application with **SQLite** for users, progress, AI challenge rows, and challenge metadata, **server-side sessions**, and **Werkzeug**-hashed passwords, plus optional **SMTP** for password reset. The front end uses **Jinja2** templates with custom CSS and JavaScript. Supporting **Python scripts** (often using **Scapy**) help authors generate or document packet captures under `static/pcaps/`. **Structured request logging** (rotating file under `logs/`) helps operators trace flag submission latency and completion flows during development or demos. Together, Thaghrah is a self-contained environment for **safe, hands-on network security education**.
+The system is implemented as a **Flask** application with **SQLite** for users, progress, AI challenge rows, and challenge metadata, **server-side sessions**, and **Werkzeug**-hashed passwords. The front end uses **Jinja2** templates with custom CSS and JavaScript. Supporting **Python scripts** (often using **Scapy**) help authors generate or document packet captures under `static/pcaps/`. **Structured request logging** (rotating file under `logs/`) helps operators trace flag submission latency and completion flows during development or demos. Together, Thaghrah is a self-contained environment for **safe, hands-on network security education**.
 
 **One-line summary (for GitHub, forms, or abstracts):**  
 *Thaghrah is a Flask-based cybersecurity learning platform where students analyze packet captures across eight protocol categories, optionally generate AI-assisted PCAP challenges, submit flags, earn points and badges in a sequential track, and finish with a celebratory completion experience.*
@@ -17,7 +17,6 @@ The system is implemented as a **Flask** application with **SQLite** for users, 
 
 - **User accounts**: Registration (name, email, password), login, and session handling
 - **Password policy**: At least 8 characters, one uppercase letter, and one special character
-- **Forgot password**: Request a reset link by email; use the link to set a new password (or see the link in the server console if SMTP is not configured)
 - **40 network challenges** organized into **eight protocol categories** (five challenges each):
   - **HTTP** — traffic basics, headers, status codes, cookies, redirects
   - **TCP** — ports, handshakes, fragmentation, reassembly, port knocking
@@ -45,8 +44,8 @@ The system is implemented as a **Flask** application with **SQLite** for users, 
 | Database | SQLite (`thaghrah.db`, created/updated on startup) |
 | Auth | Werkzeug password hashing; Flask sessions |
 | Frontend | Jinja2 templates, CSS, JavaScript |
-| Configuration | `.env` loading via `python-dotenv` with a fallback loader in `thaghrah/config.py` |
-| AI challenge pipeline | HTTP APIs (xAI Grok or Groq, selectable via env); JSON plan → PCAP build (`pcap_from_ai_plan`, Scapy / optional tshark path) |
+| Configuration | `.env` loading via `python-dotenv` with a fallback loader in `thaghrah/core/config.py` |
+| AI challenge pipeline | HTTP APIs (xAI Grok or Groq, selectable via env); JSON plan → PCAP build (`thaghrah.ai.pcap_plan`, Scapy / optional tshark path) |
 | Logging | Python `logging` with `RotatingFileHandler` → `logs/app.log` |
 | Tooling | [Scapy](https://scapy.net/) and [Pillow](https://python-pillow.org/) (capture generation and assets where applicable) |
 
@@ -93,7 +92,7 @@ The system is implemented as a **Flask** application with **SQLite** for users, 
    python run.py
    ```
 
-   On first run this initializes the SQLite schema, seeds categories/challenges/badges, and starts the development server. You can also use `python app.py` (thin shim) or `flask --app app run` if you prefer.
+   On first run this initializes the SQLite schema, seeds categories/challenges/badges, and starts the development server.
 
 6. **Open the app** at [http://127.0.0.1:5001](http://127.0.0.1:5001).
 
@@ -104,21 +103,6 @@ Challenge pages expect packet captures under `static/pcaps/` (for example `chall
 ### Logs (`logs/`)
 
 On startup the app ensures `logs/` exists and writes **rotating** logs to `logs/app.log` (with numbered backups when the file grows large). Useful lines include HTTP timing for `/submit_flag` and `/challenges/ai/*`, plus structured submit outcomes. Adjust verbosity or handlers in `thaghrah/__init__.py` if you deploy to production.
-
-### Optional — email for password reset
-
-For real email delivery (e.g. production), set:
-
-| Variable | Example / notes |
-|----------|------------------|
-| `MAIL_SERVER` | `smtp.gmail.com` |
-| `MAIL_PORT` | `587` |
-| `MAIL_USE_TLS` | `1` for TLS |
-| `MAIL_USERNAME` | SMTP username |
-| `MAIL_PASSWORD` | App password or SMTP secret |
-| `MAIL_FROM` | Sender address, e.g. `noreply@yourdomain.com` |
-
-If `MAIL_SERVER` is unset, the reset link is **printed to the console** so you can test forgot-password locally.
 
 ## Developing and syncing challenge metadata
 
@@ -134,33 +118,26 @@ Run this from the **project root** so imports resolve correctly.
 
 1. **Register** with your name, email, and password.
 2. **Log in** to reach the home/dashboard flow.
-3. **Forgot password** (optional): From the login page, request a reset and follow the link (or copy it from the terminal if SMTP is off).
-4. **Pick the next unlocked challenge**—you can browse by protocol category on the dashboard, but a **challenge page** only opens when that challenge is unlocked in the fixed global sequence.
-5. **Download the pcap**, analyze it in Wireshark, and **submit the flag**.
-6. **Use hints sparingly** if you want full points.
-7. **AI Lab** (optional): From the nav, open **AI lab**, describe a scenario, generate a challenge, download the PCAP, and submit the flag when ready.
+3. **Pick the next unlocked challenge**—you can browse by protocol category on the dashboard, but a **challenge page** only opens when that challenge is unlocked in the fixed global sequence.
+4. **Download the pcap**, analyze it in Wireshark, and **submit the flag**.
+5. **Use hints sparingly** if you want full points.
+6. **AI Lab** (optional): From the nav, open **AI lab**, describe a scenario, generate a challenge, download the PCAP, and submit the flag when ready.
 
 ## Project structure
 
 ```
 Senior-Project/
 ├── run.py                    # Dev entrypoint: DB init + Flask dev server
-├── app.py                    # Shim: `app` for FLASK_APP=app; same as run when executed
-├── thaghrah/                 # Application package (factory, routes, DB, config)
+├── thaghrah/                 # Application package
 │   ├── __init__.py           # create_app(), logging, request timing
-│   ├── config.py             # Paths, .env loading
-│   ├── constants.py          # Protocol names and UI copy
-│   ├── database.py           # get_db(), init_db(), migrations
-│   ├── challenge_utils.py    # Badges, unlock logic, flag helpers
-│   ├── ai_helpers.py         # AI Lab encoding / hint helpers
-│   ├── mail.py               # Password reset email
-│   ├── decorators.py         # login_required
-│   └── routes/               # HTTP handlers (split by area)
-├── db_queries.py             # SQLite helpers
+│   ├── core/                 # Paths, `.env`, protocol category IDs (`PROTOCOL_NAMES` in `constants.py`)
+│   ├── content/              # Guide, cheat-sheet, protocol blurbs (`protocol_details.py`) — no Flask
+│   ├── domain/               # Challenge progression, flags, badges
+│   ├── ai/                   # Grok client, validation, PCAP build, AI hint helpers
+│   ├── db/                   # `database.py` (migrations), `queries.py`
+│   ├── auth/                 # `login_required` and related
+│   └── routes/               # HTTP handlers only
 ├── schema.sql                # Reference schema (DB is created/updated in init_db)
-├── grok_challenge_client.py  # LLM calls for AI challenge generation
-├── pcap_from_ai_plan.py      # Build PCAPs from AI JSON plans
-├── ai_challenge_utils.py     # Flag normalization and AI challenge helpers
 ├── requirements.txt
 ├── .env.example              # Template for API keys (copy to .env)
 ├── thaghrah.db               # SQLite database (created on first run)
@@ -187,8 +164,7 @@ Senior-Project/
 │   ├── ai_challenge.html     # AI Lab UI
 │   ├── login.html
 │   ├── register.html
-│   ├── forgot_password.html
-│   └── reset_password.html
+│   └── ...
 └── static/
     ├── css/
     ├── js/
@@ -215,7 +191,7 @@ Working through Thaghrah helps students:
 
 ## Notes
 
-- The database is initialized automatically when you run `run.py` or `app.py`.
+- The database is initialized automatically when you run `run.py`.
 - Passwords are stored as Werkzeug hashes, not plaintext.
 - Unlocking is **global and sequential** according to the order in `challenges/__init__.py`.
 - Points and badge progress are stored per user.

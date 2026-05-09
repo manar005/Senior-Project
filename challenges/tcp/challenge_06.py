@@ -1,5 +1,5 @@
 """
-Challenge 2: TCP Handshake Analysis
+Challenge 6: TCP Handshake Analysis
 Category: TCP
 """
 challenge = {

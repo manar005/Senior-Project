@@ -1,8 +1,6 @@
 """
-Challenge 26: ICMP Type and Code
+Challenge 22: ICMP Type and Code
 Category: ICMP
-
-Identify both the ICMP type and code from a captured packet (e.g. Destination Unreachable).
 """
 challenge = {
     'title': 'ICMP Type and Code',

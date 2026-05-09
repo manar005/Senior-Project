@@ -1,5 +1,6 @@
 """
-Challenge 25: FTP Rename (RNFR/RNTO) – multiple renames; RNTO arguments are encoded; one decodes to the flag.
+Challenge 20: FTP Rename (RNFR/RNTO) – multiple renames; RNTO arguments are encoded; one decodes to the flag.
+Category: FTP
 """
 challenge = {
     'title': 'FTP Rename (RNFR/RNTO)',

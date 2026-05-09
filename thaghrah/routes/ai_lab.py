@@ -3,12 +3,9 @@ import time
 
 from flask import abort, current_app, jsonify, render_template, request, send_file, session, url_for
 
-import db_queries
-from ai_challenge_utils import extract_flag_inner_value, normalize_ai_flag_value, trim_only
-from grok_challenge_client import call_grok_for_challenge
-from pcap_from_ai_plan import build_packets_from_plan, make_ai_pcap_filename, write_pcap_with_tshark
-
-from thaghrah.ai_helpers import (
+from thaghrah.ai.challenge_payload import extract_flag_inner_value, normalize_ai_flag_value, trim_only
+from thaghrah.ai.grok_client import call_grok_for_challenge
+from thaghrah.ai.helpers import (
     build_ai_hint,
     decode_with_encoding,
     encode_with_encoding,
@@ -17,10 +14,11 @@ from thaghrah.ai_helpers import (
     requested_encryption_from_prompt,
     requested_fragmentation_from_prompt,
 )
-from thaghrah.challenge_utils import _flag_fingerprint, _resolve_ai_pcap_path
-from thaghrah.config import STATIC_DIR
-from thaghrah.database import get_db
-from thaghrah.decorators import login_required
+from thaghrah.ai.pcap_plan import build_packets_from_plan, make_ai_pcap_filename, write_pcap_with_tshark
+from thaghrah.auth.decorators import login_required
+from thaghrah.core.config import STATIC_DIR
+from thaghrah.db import get_db, queries as db_queries
+from thaghrah.domain.challenge_utils import _flag_fingerprint, _resolve_ai_pcap_path
 
 
 def _split_for_parts(value: str, count: int):

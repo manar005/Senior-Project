@@ -1,5 +1,5 @@
 """
-Challenge 30: SMTP (2/5)
+Challenge 27: SMTP Command Sequence
 Category: SMTP
 """
 challenge = {

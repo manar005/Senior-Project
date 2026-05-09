@@ -1,8 +1,6 @@
 """
-Challenge 18: DNS TXT Record Response
+Challenge 12: DNS TXT Record Response
 Category: DNS
-
-A DNS response in the capture contains a TXT record. The flag is the string value of that TXT record.
 """
 challenge = {
     'title': 'DNS TXT Record Response',

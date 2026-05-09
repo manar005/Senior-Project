@@ -1,5 +1,5 @@
 """
-Challenge 5: ICMP Packet Analysis (content from former challenge 6)
+Challenge 21: ICMP Packet Analysis
 Category: ICMP
 """
 challenge = {

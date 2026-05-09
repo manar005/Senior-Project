@@ -9,7 +9,7 @@ import time
 from flask import Flask, g, request, session
 from logging.handlers import RotatingFileHandler
 
-from thaghrah.config import APP_LOG_PATH, APP_ROOT, LOGS_DIR, PCAPS_DIR
+from thaghrah.core.config import APP_LOG_PATH, APP_ROOT, LOGS_DIR, PCAPS_DIR
 
 
 def _setup_app_logging(app):

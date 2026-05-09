@@ -1,5 +1,5 @@
 """
-Challenge 13: HTTP Request Method
+Challenge 3: HTTP Request Method
 Category: HTTP
 """
 challenge = {

@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS challenges (
     flag TEXT NOT NULL,
     expected_outcome TEXT NOT NULL,
     challenge_type TEXT NOT NULL,
-    challenge_data TEXT,
     order_in_category INTEGER NOT NULL,
     points INTEGER NOT NULL DEFAULT 100,
     FOREIGN KEY (category_id) REFERENCES challenge_categories(id)
@@ -64,15 +63,6 @@ CREATE TABLE IF NOT EXISTS user_badges (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (badge_id) REFERENCES badges(id),
     UNIQUE(user_id, badge_id)
-);
-
--- Password reset verification codes (email, code, expires_at)
-CREATE TABLE IF NOT EXISTS password_reset_codes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL,
-    code TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- AI-generated challenges (one row per generated challenge per user)

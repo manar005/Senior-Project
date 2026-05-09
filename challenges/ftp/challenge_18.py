@@ -1,7 +1,6 @@
 """
-Challenge 23: FTP Passive Mode Data Connection
+Challenge 18: FTP Passive Mode Data Connection
 Category: FTP
-Level 3: Use PASV response to find the data connection and extract the flag from transferred data.
 """
 challenge = {
     'title': 'FTP Passive Mode Data Connection',

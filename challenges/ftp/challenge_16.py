@@ -1,10 +1,9 @@
 """
-Challenge 4: FTP Credential Extraction (submit encoded flag)
+Challenge 16: FTP Credential Extraction (submit encoded flag)
 Category: FTP
 """
 import base64
 
-# User finds plaintext credentials; they must encode USERNAME_PASSWORD (e.g. base64) and submit that
 _FLAG_PLAINTEXT = 'ADMIN_SECRET123'
 challenge = {
     'title': 'FTP Credential Extraction',

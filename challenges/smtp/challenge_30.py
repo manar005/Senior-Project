@@ -1,5 +1,5 @@
 """
-Challenge 33: SMTP (5/5)
+Challenge 30: SMTP Full Dialog
 Category: SMTP
 """
 challenge = {

@@ -1,7 +1,6 @@
 """
-Challenge 24: FTP File Download (RETR)
+Challenge 19: FTP File Download (RETR)
 Category: FTP
-Level 4: Same flow as Challenge 23; file contains three candidate flags—only one is accepted.
 """
 challenge = {
     'title': 'FTP File Download (RETR)',

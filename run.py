@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Development entrypoint: initializes the DB then starts the Flask server."""
 from thaghrah import create_app
-from thaghrah.database import init_db
+from thaghrah.db import init_db
 
 
 def main():

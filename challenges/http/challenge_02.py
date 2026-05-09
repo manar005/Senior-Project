@@ -1,5 +1,5 @@
 """
-Challenge 12: HTTP Status Code
+Challenge 2: HTTP Status Code
 Category: HTTP
 """
 challenge = {

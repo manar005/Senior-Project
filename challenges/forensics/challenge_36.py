@@ -1,5 +1,5 @@
 """
-Challenge 10: Network Forensics - Data Exfiltration
+Challenge 36: Network Forensics - Data Exfiltration
 Category: Forensics
 """
 challenge = {

@@ -1,5 +1,5 @@
 """
-Challenge 14: HTTP Cookie Extraction
+Challenge 4: HTTP Cookie Extraction
 Category: HTTP
 """
 challenge = {

@@ -1,9 +1,6 @@
 """
-Challenge 20: DNS CNAME Record
+Challenge 14: DNS CNAME Record
 Category: DNS
-
-A DNS response contains a CNAME record. The canonical name (the target of the CNAME)
-is the flag when you replace each dot with an underscore and convert to uppercase.
 """
 challenge = {
     'title': 'DNS CNAME Record',
