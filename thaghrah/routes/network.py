@@ -3,6 +3,7 @@ import time
 from flask import current_app, jsonify, redirect, render_template, request, session, url_for
 
 from challenges import (
+    challenge_dict_for_db_id,
     challenge_id_for_display_number,
     display_number_for_challenge_id,
     get_network_challenges,
@@ -210,7 +211,18 @@ def register_routes(app):
         stored_flag = challenge_row["flag"]
         if stored_flag is None:
             stored_flag = ""
-        if network_flag_match(stored_flag, flag):
+        # Prefer matching against the Python challenge definition so a stale or
+        # wrong-copy thaghrah.db cannot reject the correct flag (DB is still used
+        # for title, points, progress, etc.).
+        canonical_flag = None
+        try:
+            canonical_flag = challenge_dict_for_db_id(challenge_id).get("flag")
+        except (ValueError, TypeError, KeyError):
+            pass
+        flag_ok = network_flag_match(stored_flag, flag) or (
+            canonical_flag is not None and network_flag_match(canonical_flag, flag)
+        )
+        if flag_ok:
             existing = db_queries.check_challenge_completed(conn, session["user_id"], challenge_id)
             new_badges = []
             badge_message = ""

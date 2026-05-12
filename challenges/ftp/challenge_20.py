@@ -11,5 +11,5 @@ challenge = {
     'challenge_type': 'network',
     'points': 120,
     'category_id': 4,
-    'order_in_category': 3,
+    'order_in_category': 5,
 }

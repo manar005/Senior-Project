@@ -4,7 +4,7 @@ Server on 2121 (control); client uses PASV then LIST. Flag is in the data stream
 
 Run while capturing on loopback in Wireshark. Filter "tcp.port == 2121" for control;
 find 227 reply for data port (e*256+f), then follow that TCP stream for the flag.
-Save as static/pcaps/challenge_19.pcapng.
+Save as static/pcaps/challenge_18.pcapng.
 """
 import socket
 import threading
@@ -103,7 +103,7 @@ def main():
     except Exception as e:
         print("Client:", e)
     time.sleep(0.3)
-    print("Capture complete. Save as static/pcaps/challenge_19.pcapng")
+    print("Capture complete. Save as static/pcaps/challenge_18.pcapng")
 
 
 if __name__ == "__main__":

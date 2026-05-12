@@ -1,6 +1,6 @@
 """
 Challenge 25 pcap: FTP Rename (RNFR/RNTO). All RNTO arguments are Base64-encoded; one decodes to the flag.
-Save as static/pcaps/challenge_18.pcapng.
+Save as static/pcaps/challenge_20.pcapng.
 """
 import base64
 import socket
@@ -66,7 +66,7 @@ def main():
     except Exception as e:
         print("Client:", e)
     time.sleep(0.3)
-    print("Capture complete. Save as static/pcaps/challenge_18.pcapng")
+    print("Capture complete. Save as static/pcaps/challenge_20.pcapng")
 
 
 if __name__ == "__main__":

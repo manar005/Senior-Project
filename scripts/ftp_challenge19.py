@@ -135,7 +135,7 @@ def main():
     except Exception as e:
         print("Client:", e)
     time.sleep(0.3)
-    print("Capture complete. Save as static/pcaps/challenge_20.pcapng")
+    print("Capture complete. Save as static/pcaps/challenge_19.pcapng")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 """Challenge display, unlock logic, badges, and flag helpers."""
 import hashlib
 import os
+import re
+import unicodedata
 from datetime import date
 
 from thaghrah.ai.challenge_payload import extract_flag_inner_value, trim_only
@@ -21,6 +23,12 @@ def normalize_network_flag(s):
     s = str(s).strip().replace("\r", "").replace("\n", "")
     for c in "\ufeff\u200b\u200c\u200d\u200e\u200f":
         s = s.replace(c, "")
+    # Replace unicode space / separator lookalikes before NFKC (NFKC maps NBSP → ASCII space).
+    for c in ("\u00a0", "\u202f", "\u2009", "\u2002", "\u2003", "\u2007", "\u2060"):
+        s = s.replace(c, "_")
+    s = unicodedata.normalize("NFKC", s)
+    # Wireshark table copies sometimes use real spaces between "words" of underscore-flags.
+    s = re.sub(r"[ \t]+", "_", s)
     return s.upper()
 
 
