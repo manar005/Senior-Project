@@ -2,7 +2,7 @@
 import os
 import sqlite3
 
-from challenges import challenge_dict_for_db_id, get_network_challenges
+from challenges import NETWORK_CHALLENGE_COUNT, challenge_dict_for_db_id, get_network_challenges
 from thaghrah.core.config import APP_ROOT, DATABASE
 from thaghrah.core.constants import PROTOCOL_NAMES
 from thaghrah.db import queries as db_queries
@@ -67,7 +67,7 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
-    total_challenges = len(get_network_challenges())
+    total_challenges = NETWORK_CHALLENGE_COUNT
 
     def pct_threshold(pct):
         return max(1, round(total_challenges * pct))

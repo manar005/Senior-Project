@@ -3,11 +3,9 @@ import time
 from flask import current_app, jsonify, redirect, render_template, request, session, url_for
 
 from challenges import (
+    NETWORK_CHALLENGE_COUNT,
     challenge_dict_for_db_id,
-    challenge_id_for_display_number,
-    display_number_for_challenge_id,
-    get_network_challenges,
-    pcap_suffix_for_challenge_id,
+    is_valid_network_challenge_id,
 )
 
 from thaghrah.ai.challenge_payload import parse_bool
@@ -30,7 +28,7 @@ def register_routes(app):
     def network_challenges():
         conn = get_db()
         categories = db_queries.get_all_categories(conn)
-        all_challenges = db_queries.get_all_challenges_ordered(conn)
+        all_challenges = db_queries.get_all_challenges(conn)
         completed = db_queries.get_user_progress(conn, session["user_id"])
         completed_ids = [row[0] for row in completed]
         unlocked = get_unlocked_challenges(all_challenges, completed_ids)
@@ -69,7 +67,7 @@ def register_routes(app):
         if not cat:
             conn.close()
             return redirect(url_for("network_challenges"))
-        all_challenges = db_queries.get_all_challenges_ordered(conn)
+        all_challenges = db_queries.get_all_challenges(conn)
         completed = db_queries.get_user_progress(conn, session["user_id"])
         completed_ids = [row[0] for row in completed]
         unlocked = get_unlocked_challenges(all_challenges, completed_ids)
@@ -79,9 +77,6 @@ def register_routes(app):
             challenges = db_queries.get_challenges_by_category_ids(conn, tcp_cat_ids)
         else:
             challenges = db_queries.get_challenges_by_category(conn, category_id)
-        challenges = [dict(c) for c in challenges]
-        for c in challenges:
-            c["display_id"] = display_number_for_challenge_id(c["id"])
         user_badges = db_queries.get_user_badges(conn, session["user_id"])
         total_badges = db_queries.get_total_badges_count(conn)
         total_points = db_queries.get_user_total_points(conn, session["user_id"])
@@ -119,13 +114,10 @@ def register_routes(app):
     @app.route("/challenge/<int:challenge_id>")
     @login_required
     def challenge(challenge_id):
-        if challenge_id < 1:
-            return redirect(url_for("network_challenges"))
-        db_challenge_id = challenge_id_for_display_number(challenge_id)
-        if db_challenge_id is None:
+        if not is_valid_network_challenge_id(challenge_id):
             return redirect(url_for("network_challenges"))
         conn = get_db()
-        challenge_row = db_queries.get_challenge_by_id(conn, db_challenge_id)
+        challenge_row = db_queries.get_challenge_by_id(conn, challenge_id)
         if not challenge_row:
             conn.close()
             return redirect(url_for("network_challenges"))
@@ -133,17 +125,14 @@ def register_routes(app):
         completed = db_queries.get_user_progress(conn, session["user_id"])
         completed_ids = [row[0] for row in completed]
         unlocked = get_unlocked_challenges(challenges, completed_ids)
-        if db_challenge_id not in unlocked:
+        if challenge_id not in unlocked:
             conn.close()
             return redirect(url_for("network_challenges"))
         conn.close()
-        pcap_suffix = pcap_suffix_for_challenge_id(challenge_row["id"])
         return render_template(
             "challenge.html",
             challenge=challenge_row,
-            challenge_display_id=challenge_id,
-            pcap_suffix=pcap_suffix,
-            is_completed=db_challenge_id in completed_ids,
+            is_completed=challenge_id in completed_ids,
             category_url=url_for("category_challenges", category_id=challenge_row["category_id"]),
         )
 
@@ -172,11 +161,11 @@ def register_routes(app):
             )
             return jsonify({"success": False, "message": "Please enter a flag"})
         try:
-            display_challenge_id = int(challenge_id)
-            if display_challenge_id < 1:
+            challenge_id = int(challenge_id)
+            if not is_valid_network_challenge_id(challenge_id):
                 current_app.logger.warning(
                     "SUBMIT_FLAG invalid_challenge_id challenge_id=%r user_id=%s",
-                    display_challenge_id,
+                    challenge_id,
                     session.get("user_id"),
                 )
                 return jsonify({"success": False, "message": "Invalid challenge ID"})
@@ -184,14 +173,6 @@ def register_routes(app):
             current_app.logger.warning(
                 "SUBMIT_FLAG invalid_challenge_id challenge_id=%r user_id=%s",
                 challenge_id,
-                session.get("user_id"),
-            )
-            return jsonify({"success": False, "message": "Invalid challenge ID"})
-        challenge_id = challenge_id_for_display_number(display_challenge_id)
-        if challenge_id is None:
-            current_app.logger.warning(
-                "SUBMIT_FLAG unmapped_display_challenge_id display_id=%r user_id=%s",
-                display_challenge_id,
                 session.get("user_id"),
             )
             return jsonify({"success": False, "message": "Invalid challenge ID"})
@@ -251,7 +232,7 @@ def register_routes(app):
                     badge_message = f' 🏆 Badge earned: {", ".join(badge_names)}!'
             completed_rows = db_queries.get_user_progress(conn, session["user_id"])
             completed_count = len({row[0] for row in completed_rows})
-            total_network_challenges = len(get_network_challenges())
+            total_network_challenges = NETWORK_CHALLENGE_COUNT
             all_challenges_completed = completed_count >= total_network_challenges
 
             conn.close()

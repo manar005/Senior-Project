@@ -1,4 +1,4 @@
-"""Challenge display, unlock logic, badges, and flag helpers."""
+"""Challenge unlock logic, badges, and flag helpers."""
 import hashlib
 import os
 import re
@@ -165,9 +165,16 @@ def check_and_award_badges(user_id):
 
 
 def get_unlocked_challenges(challenges, completed_ids):
-    """Determine which challenges are unlocked (linear progression)."""
+    """
+    Linear unlock along global track order.
+
+    ``challenges`` must be sorted by ``id`` ascending (1, 2, 3, …).
+    Challenge *n* unlocks when challenge *n − 1* is completed (id 1 is always unlocked).
+    """
+    completed = set(completed_ids)
     unlocked = []
-    for i, challenge in enumerate(challenges):
-        if i == 0 or challenges[i - 1]["id"] in completed_ids:
-            unlocked.append(challenge["id"])
+    for challenge in challenges:
+        cid = challenge["id"]
+        if cid == 1 or (cid - 1) in completed:
+            unlocked.append(cid)
     return unlocked

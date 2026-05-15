@@ -16,11 +16,10 @@ def create_user(conn, name, email, password_hash):
     return result.lastrowid
 
 def get_all_challenges(conn):
-    """Get all challenges ordered by category id then challenge order_in_category"""
+    """Get all challenges in global track order (matches DB id / get_network_challenges)."""
     return conn.execute('''
         SELECT c.* FROM challenges c
-        JOIN challenge_categories cc ON c.category_id = cc.id
-        ORDER BY cc.id, c.order_in_category
+        ORDER BY c.id
     ''').fetchall()
 
 def get_all_categories(conn):
@@ -32,27 +31,25 @@ def get_category_by_id(conn, category_id):
     return conn.execute('SELECT * FROM challenge_categories WHERE id = ?', (category_id,)).fetchone()
 
 def get_challenges_by_category(conn, category_id):
-    """Get challenges in a category ordered by order_in_category"""
+    """Get challenges in a category in global track order (by id)."""
     return conn.execute(
-        'SELECT * FROM challenges WHERE category_id = ? ORDER BY order_in_category',
+        'SELECT * FROM challenges WHERE category_id = ? ORDER BY id',
         (category_id,)
     ).fetchall()
 
 def get_challenges_by_category_ids(conn, category_ids):
-    """Get challenges in any of the given categories, ordered by category id then challenge order_in_category"""
+    """Get challenges in any of the given categories, in global track order (by id)."""
     if not category_ids:
         return []
     placeholders = ','.join('?' * len(category_ids))
-    return conn.execute('''
+    return conn.execute(
+        f'''
         SELECT c.* FROM challenges c
-        JOIN challenge_categories cc ON c.category_id = cc.id
-        WHERE c.category_id IN ({})
-        ORDER BY cc.id, c.order_in_category
-    '''.format(placeholders), category_ids).fetchall()
-
-def get_all_challenges_ordered(conn):
-    """Get all challenges in global order (for unlock logic). Same as get_all_challenges."""
-    return get_all_challenges(conn)
+        WHERE c.category_id IN ({placeholders})
+        ORDER BY c.id
+        ''',
+        category_ids,
+    ).fetchall()
 
 def get_challenge_by_id(conn, challenge_id):
     """Get challenge by ID"""
