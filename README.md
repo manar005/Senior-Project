@@ -15,7 +15,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Open **http://127.0.0.1:5001**. First run creates the SQLite database and seeds challenges.
+The dev server listens on **all interfaces** (`0.0.0.0:5001`). On this machine, open **http://127.0.0.1:5001** (or **http://localhost:5001**). From another device on the same network, use `http://<this-machine-ip>:5001`. First run creates the SQLite database and seeds challenges.
 
 ---
 
@@ -91,7 +91,7 @@ Copy `.env.example` to `.env` and set:
 
 ```
 Senior-Project/
-├── run.py                 # Dev server (port 5001)
+├── run.py                 # Dev server (0.0.0.0:5001)
 ├── requirements.txt
 ├── schema.sql
 ├── .env.example

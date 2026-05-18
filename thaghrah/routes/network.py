@@ -192,9 +192,7 @@ def register_routes(app):
         stored_flag = challenge_row["flag"]
         if stored_flag is None:
             stored_flag = ""
-        # Prefer matching against the Python challenge definition so a stale or
-        # wrong-copy thaghrah.db cannot reject the correct flag (DB is still used
-        # for title, points, progress, etc.).
+        
         canonical_flag = None
         try:
             canonical_flag = challenge_dict_for_db_id(challenge_id).get("flag")

@@ -1,6 +1,6 @@
 """
 Database query helper functions
-This module contains reusable database query functions using conn.execute() instead of cursor.execute()
+This module contains reusable database query functions using conn.execute().
 """
 import sqlite3
 
